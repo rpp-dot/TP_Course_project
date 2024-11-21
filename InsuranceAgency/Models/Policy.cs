@@ -21,7 +21,7 @@ namespace InsuranceAgency.Models
         public decimal PremiumAmount {  get; set; }
         [Required]
         [Column(TypeName = "decimal(18,2)")]
-        public decimal PremiumCoef { get; set; }
+        public decimal PaymentCoef { get; set; }
         [Required]
         public PolicyStatus Status { get; set; }
         [Required]
