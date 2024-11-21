@@ -7,6 +7,7 @@ namespace InsuranceAgency.Models
     public class Client:User
     {
         public ICollection<PolicyClaim>? PolicyClaims { get; set; }
+        public ICollection<PaymentClaim>? PaymentClaims { get; set; }
         public ICollection<Policy>? Policies { get; set; }
     }
 }
