@@ -25,6 +25,13 @@
             return View();
         }
 
+        // GET: /Account/AccessDenied
+        public IActionResult AccessDenied()
+        {
+            return View();
+        }
+
+
         // POST: /Account/Login
         [HttpPost]
         [ValidateAntiForgeryToken]

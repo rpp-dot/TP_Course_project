@@ -7,9 +7,11 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using InsuranceAgency.Data;
 using InsuranceAgency.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace InsuranceAgency.Controllers
 {
+    [Authorize(Roles = "admin")]
     public class InsuranceAgentsController : Controller
     {
         private readonly InsuranceAgencyDbContext _context;

@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace InsuranceAgency.Controllers
 {
-    [Authorize]
+    [Authorize(Roles ="admin")]
     public class AccountantsController : Controller
     {
         private readonly InsuranceAgencyDbContext _context;
