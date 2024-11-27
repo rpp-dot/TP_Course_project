@@ -27,12 +27,15 @@ namespace InsuranceAgency.Models
         [Required]
         [ForeignKey("InsuranceObject")]
         public int InsuranceObjectId { get; set; }
+        public InsuranceObject InsuranceObject { get; set; }
         [Required]
         [ForeignKey("InsuranceAgent")]
         public int InsuranceAgentId { get; set; }
+        public InsuranceAgent InsuranceAgent { get; set; }
         [Required]
         [ForeignKey("Client")]
         public int ClientId { get; set; }
+        public Client Client { get; set; }
 
     }
     public enum PolicyStatus

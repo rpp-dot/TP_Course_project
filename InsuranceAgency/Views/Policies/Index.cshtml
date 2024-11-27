@@ -31,10 +31,13 @@
                 @Html.DisplayNameFor(model => model.Status)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.InsuranceObjectId)
+                @Html.DisplayNameFor(model => model.InsuranceObject)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.InsuranceAgentId)
+                @Html.DisplayNameFor(model => model.InsuranceAgent)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Client)
             </th>
             <th></th>
         </tr>
@@ -61,10 +64,13 @@
                 @Html.DisplayFor(modelItem => item.Status)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.InsuranceObjectId)
+                @Html.DisplayFor(modelItem => item.InsuranceObject.Type)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.InsuranceAgentId)
+                @Html.DisplayFor(modelItem => item.InsuranceAgent.Email)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Client.Email)
             </td>
             <td>
                 <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |

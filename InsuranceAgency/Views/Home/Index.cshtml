@@ -33,7 +33,7 @@
 <div class="text-center">
     <h1 class="display-4">Добро пожаловать в страховое агентство</h1>
     <div class="display-5">
-        @if (User.IsInRole("admin"))
+        @if (User.IsInRole("Administrator"))
         {
             <a href="insuranceagents/index">Список агентов</a>
             <a href="administrators/index">Список администраторов</a>

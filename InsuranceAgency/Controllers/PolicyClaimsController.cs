@@ -22,9 +22,8 @@ namespace InsuranceAgency.Controllers
         // GET: PolicyClaims
         public async Task<IActionResult> Index()
         {
-              return _context.PolicyClaims != null ? 
-                          View(await _context.PolicyClaims.ToListAsync()) :
-                          Problem("Entity set 'InsuranceAgencyDbContext.PolicyClaims'  is null.");
+            var insuranceAgencyDbContext = _context.PolicyClaims.Include(p => p.Client).Include(p => p.InsuranceObject).Include(p => p.Service);
+            return View(await insuranceAgencyDbContext.ToListAsync());
         }
 
         // GET: PolicyClaims/Details/5
@@ -36,6 +35,9 @@ namespace InsuranceAgency.Controllers
             }
 
             var policyClaim = await _context.PolicyClaims
+                .Include(p => p.Client)
+                .Include(p => p.InsuranceObject)
+                .Include(p => p.Service)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (policyClaim == null)
             {
@@ -48,6 +50,9 @@ namespace InsuranceAgency.Controllers
         // GET: PolicyClaims/Create
         public IActionResult Create()
         {
+            ViewData["ClientId"] = new SelectList(_context.Clients, "Id", "Email");
+            ViewData["InsuranceObjectId"] = new SelectList(_context.InsuranceObjects, "Id", "Type");
+            ViewData["ServiceId"] = new SelectList(_context.Services, "Id", "InsuranceObjectType");
             return View();
         }
 
@@ -64,6 +69,9 @@ namespace InsuranceAgency.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
+            ViewData["ClientId"] = new SelectList(_context.Clients, "Id", "Email", policyClaim.ClientId);
+            ViewData["InsuranceObjectId"] = new SelectList(_context.InsuranceObjects, "Id", "Type", policyClaim.InsuranceObjectId);
+            ViewData["ServiceId"] = new SelectList(_context.Services, "Id", "InsuranceObjectType", policyClaim.ServiceId);
             return View(policyClaim);
         }
 
@@ -80,6 +88,9 @@ namespace InsuranceAgency.Controllers
             {
                 return NotFound();
             }
+            ViewData["ClientId"] = new SelectList(_context.Clients, "Id", "Email", policyClaim.ClientId);
+            ViewData["InsuranceObjectId"] = new SelectList(_context.InsuranceObjects, "Id", "Type", policyClaim.InsuranceObjectId);
+            ViewData["ServiceId"] = new SelectList(_context.Services, "Id", "InsuranceObjectType", policyClaim.ServiceId);
             return View(policyClaim);
         }
 
@@ -115,6 +126,9 @@ namespace InsuranceAgency.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
+            ViewData["ClientId"] = new SelectList(_context.Clients, "Id", "Email", policyClaim.ClientId);
+            ViewData["InsuranceObjectId"] = new SelectList(_context.InsuranceObjects, "Id", "Type", policyClaim.InsuranceObjectId);
+            ViewData["ServiceId"] = new SelectList(_context.Services, "Id", "InsuranceObjectType", policyClaim.ServiceId);
             return View(policyClaim);
         }
 
@@ -127,6 +141,9 @@ namespace InsuranceAgency.Controllers
             }
 
             var policyClaim = await _context.PolicyClaims
+                .Include(p => p.Client)
+                .Include(p => p.InsuranceObject)
+                .Include(p => p.Service)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (policyClaim == null)
             {

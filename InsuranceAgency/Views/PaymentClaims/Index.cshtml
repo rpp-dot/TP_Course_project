@@ -19,7 +19,10 @@
                 @Html.DisplayNameFor(model => model.ClientBankAccount)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.PolicyId)
+                @Html.DisplayNameFor(model => model.Policy)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Client)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.Description)
@@ -43,7 +46,10 @@
                 @Html.DisplayFor(modelItem => item.ClientBankAccount)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.PolicyId)
+                @Html.DisplayFor(modelItem => item.Policy.Type)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Client.Email)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Description)

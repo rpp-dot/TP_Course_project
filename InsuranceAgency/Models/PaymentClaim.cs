@@ -15,8 +15,10 @@ namespace InsuranceAgency.Models
         [Required]
         [ForeignKey("Policy")]
         public int PolicyId {  get; set; }
+        public Policy Policy { get; set; }
         [Required]
         [ForeignKey("Client")]
         public int ClientId {  get; set; }
+        public Client Client { get; set; }
     }
 }

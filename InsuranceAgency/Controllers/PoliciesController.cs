@@ -22,9 +22,8 @@ namespace InsuranceAgency.Controllers
         // GET: Policies
         public async Task<IActionResult> Index()
         {
-              return _context.Policies != null ? 
-                          View(await _context.Policies.ToListAsync()) :
-                          Problem("Entity set 'InsuranceAgencyDbContext.Policies'  is null.");
+            var insuranceAgencyDbContext = _context.Policies.Include(p => p.Client).Include(p => p.InsuranceAgent).Include(p => p.InsuranceObject);
+            return View(await insuranceAgencyDbContext.ToListAsync());
         }
 
         // GET: Policies/Details/5
@@ -36,6 +35,9 @@ namespace InsuranceAgency.Controllers
             }
 
             var policy = await _context.Policies
+                .Include(p => p.Client)
+                .Include(p => p.InsuranceAgent)
+                .Include(p => p.InsuranceObject)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (policy == null)
             {
@@ -48,6 +50,9 @@ namespace InsuranceAgency.Controllers
         // GET: Policies/Create
         public IActionResult Create()
         {
+            ViewData["ClientId"] = new SelectList(_context.Clients, "Id", "Email");
+            ViewData["InsuranceAgentId"] = new SelectList(_context.InsuranceAgents, "Id", "Email");
+            ViewData["InsuranceObjectId"] = new SelectList(_context.InsuranceObjects, "Id", "Type");
             return View();
         }
 
@@ -56,7 +61,7 @@ namespace InsuranceAgency.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Type,StartDate,EndDate,PremiumAmount,PremiumCoef,Status,InsuranceObjectId,InsuranceAgentId,ClientId")] Policy policy)
+        public async Task<IActionResult> Create([Bind("Id,Type,StartDate,EndDate,PremiumAmount,PaymentCoef,Status,InsuranceObjectId,InsuranceAgentId,ClientId")] Policy policy)
         {
             if (ModelState.IsValid)
             {
@@ -64,6 +69,9 @@ namespace InsuranceAgency.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
+            ViewData["ClientId"] = new SelectList(_context.Clients, "Id", "Email", policy.ClientId);
+            ViewData["InsuranceAgentId"] = new SelectList(_context.InsuranceAgents, "Id", "Email", policy.InsuranceAgentId);
+            ViewData["InsuranceObjectId"] = new SelectList(_context.InsuranceObjects, "Id", "Type", policy.InsuranceObjectId);
             return View(policy);
         }
 
@@ -80,6 +88,9 @@ namespace InsuranceAgency.Controllers
             {
                 return NotFound();
             }
+            ViewData["ClientId"] = new SelectList(_context.Clients, "Id", "Email", policy.ClientId);
+            ViewData["InsuranceAgentId"] = new SelectList(_context.InsuranceAgents, "Id", "Email", policy.InsuranceAgentId);
+            ViewData["InsuranceObjectId"] = new SelectList(_context.InsuranceObjects, "Id", "Type", policy.InsuranceObjectId);
             return View(policy);
         }
 
@@ -88,7 +99,7 @@ namespace InsuranceAgency.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Type,StartDate,EndDate,PremiumAmount,PremiumCoef,Status,InsuranceObjectId,InsuranceAgentId,ClientId")] Policy policy)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Type,StartDate,EndDate,PremiumAmount,PaymentCoef,Status,InsuranceObjectId,InsuranceAgentId,ClientId")] Policy policy)
         {
             if (id != policy.Id)
             {
@@ -115,6 +126,9 @@ namespace InsuranceAgency.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
+            ViewData["ClientId"] = new SelectList(_context.Clients, "Id", "Email", policy.ClientId);
+            ViewData["InsuranceAgentId"] = new SelectList(_context.InsuranceAgents, "Id", "Email", policy.InsuranceAgentId);
+            ViewData["InsuranceObjectId"] = new SelectList(_context.InsuranceObjects, "Id", "Type", policy.InsuranceObjectId);
             return View(policy);
         }
 
@@ -127,6 +141,9 @@ namespace InsuranceAgency.Controllers
             }
 
             var policy = await _context.Policies
+                .Include(p => p.Client)
+                .Include(p => p.InsuranceAgent)
+                .Include(p => p.InsuranceObject)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (policy == null)
             {

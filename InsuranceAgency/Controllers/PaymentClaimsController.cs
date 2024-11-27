@@ -22,9 +22,8 @@ namespace InsuranceAgency.Controllers
         // GET: PaymentClaims
         public async Task<IActionResult> Index()
         {
-              return _context.PaymentClaims != null ? 
-                          View(await _context.PaymentClaims.ToListAsync()) :
-                          Problem("Entity set 'InsuranceAgencyDbContext.PaymentClaims'  is null.");
+            var insuranceAgencyDbContext = _context.PaymentClaims.Include(p => p.Client).Include(p => p.Policy);
+            return View(await insuranceAgencyDbContext.ToListAsync());
         }
 
         // GET: PaymentClaims/Details/5
@@ -36,6 +35,8 @@ namespace InsuranceAgency.Controllers
             }
 
             var paymentClaim = await _context.PaymentClaims
+                .Include(p => p.Client)
+                .Include(p => p.Policy)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (paymentClaim == null)
             {
@@ -48,6 +49,8 @@ namespace InsuranceAgency.Controllers
         // GET: PaymentClaims/Create
         public IActionResult Create()
         {
+            ViewData["ClientId"] = new SelectList(_context.Clients, "Id", "Email");
+            ViewData["PolicyId"] = new SelectList(_context.Policies, "Id", "Type");
             return View();
         }
 
@@ -64,6 +67,8 @@ namespace InsuranceAgency.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
+            ViewData["ClientId"] = new SelectList(_context.Clients, "Id", "Email", paymentClaim.ClientId);
+            ViewData["PolicyId"] = new SelectList(_context.Policies, "Id", "Type", paymentClaim.PolicyId);
             return View(paymentClaim);
         }
 
@@ -80,6 +85,8 @@ namespace InsuranceAgency.Controllers
             {
                 return NotFound();
             }
+            ViewData["ClientId"] = new SelectList(_context.Clients, "Id", "Email", paymentClaim.ClientId);
+            ViewData["PolicyId"] = new SelectList(_context.Policies, "Id", "Type", paymentClaim.PolicyId);
             return View(paymentClaim);
         }
 
@@ -115,6 +122,8 @@ namespace InsuranceAgency.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
+            ViewData["ClientId"] = new SelectList(_context.Clients, "Id", "Email", paymentClaim.ClientId);
+            ViewData["PolicyId"] = new SelectList(_context.Policies, "Id", "Type", paymentClaim.PolicyId);
             return View(paymentClaim);
         }
 
@@ -127,6 +136,8 @@ namespace InsuranceAgency.Controllers
             }
 
             var paymentClaim = await _context.PaymentClaims
+                .Include(p => p.Client)
+                .Include(p => p.Policy)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (paymentClaim == null)
             {
