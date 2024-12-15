@@ -9,6 +9,19 @@
 <p>
     <a asp-action="Create">Create New</a>
 </p>
+
+<div class="mb-3">
+    <label for="searchInput" class="form-label">Search by Client Email or Name</label>
+    <input type="text" id="searchInput" class="form-control" placeholder="Enter email or name">
+</div>
+
+<div class="mb-3">
+    <button class="btn btn-primary" onclick="filterByStatus('Активен')">Active</button>
+    <button class="btn btn-secondary" onclick="filterByStatus('Истек')">Expired</button>
+    <button class="btn btn-warning" onclick="filterByStatus('Подозрительный')">Suspicious</button>
+    <button class="btn btn-danger" onclick="filterByStatus('Аннулирован')">Cancelled</button>
+</div>
+
 <table class="table">
     <thead>
         <tr>
@@ -37,47 +50,139 @@
                 @Html.DisplayNameFor(model => model.InsuranceAgent)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Client)
+                Client Email
+            </th>
+            <th>
+                Client Full Name
             </th>
             <th></th>
         </tr>
     </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Type)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.StartDate)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.EndDate)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.PremiumAmount)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.PaymentCoef)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Status)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.InsuranceObject.Type)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.InsuranceAgent.Email)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Client.Email)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
+    <tbody id="policyTableBody">
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Type)
+                </td>
+                <td>
+                    @item.StartDate.ToString("dd.MM.yyyy")
+                </td>
+                <td>
+                    @item.EndDate.ToString("dd.MM.yyyy")
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.PremiumAmount)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.PaymentCoef)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Status)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.InsuranceObject.Type)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.InsuranceAgent.Email)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Client.Email)
+                </td>
+                <td>
+                    @item.Client.Surname @item.Client.Name @item.Client.Patronymic
+                </td>
+                <td>
+                    @if (item.Status == InsuranceAgency.Models.PolicyStatus.Активен)
+                    {
+                        <form method="post" action="@Url.Action("MarkAsSuspicious", "Policies", new { id = item.Id })">
+                            <button type="submit" class="btn btn-warning">Mark As Suspicious</button>
+                        </form>
+                    }
+                    else if (item.Status == InsuranceAgency.Models.PolicyStatus.Подозрительный)
+                    {
+                        <form method="post" action="@Url.Action("Cancel", "Policies", new { id = item.Id })">
+                            <button type="submit" class="btn btn-danger">Cancel</button>
+                        </form>
+                    }
+                </td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                </td>
+            </tr>
+        }
     </tbody>
 </table>
+
+<script>
+    // Filter by Status
+    function filterByStatus(status) {
+        const tableBody = document.getElementById('policyTableBody');
+        fetch(`/Policies/FilterByStatus?status=${encodeURIComponent(status)}`)
+            .then(response => response.json())
+            .then(data => {
+                tableBody.innerHTML = '';
+                data.forEach(item => {
+                    const row = `<tr>
+                                <td>${item.Type}</td>
+                                <td>${new Date(item.StartDate).toLocaleDateString('ru-RU')}</td>
+                                <td>${new Date(item.EndDate).toLocaleDateString('ru-RU')}</td>
+                                <td>${item.PremiumAmount}</td>
+                                <td>${item.PaymentCoef}</td>
+                                <td>${item.Status}</td>
+                                <td>${item.InsuranceObject.Type}</td>
+                                <td>${item.InsuranceAgent.Email}</td>
+                                <td>${item.Client.Email}</td>
+                                <td>${item.Client.Surname} ${item.Client.Name} ${item.Client.Patronymic}</td>
+                                <td>
+                                    ${item.Status === 'Активен' ? `<form method="post" action='/Policies/MarkAsSuspicious/${item.Id}'><button type="submit" class="btn btn-warning">Mark As Suspicious</button></form>` : ''}
+                                    ${item.Status === 'Подозрительный' ? `<form method="post" action='/Policies/Cancel/${item.Id}'><button type="submit" class="btn btn-danger">Cancel</button></form>` : ''}
+                                </td>
+                                <td>
+                                    <a href="/Policies/Edit/${item.Id}">Edit</a> |
+                                    <a href="/Policies/Details/${item.Id}">Details</a> |
+                                    <a href="/Policies/Delete/${item.Id}">Delete</a>
+                                </td>
+                            </tr>`;
+                    tableBody.insertAdjacentHTML('beforeend', row);
+                });
+            });
+    }
+
+    // Search functionality
+    document.getElementById('searchInput').addEventListener('input', function () {
+        const query = this.value;
+        const tableBody = document.getElementById('policyTableBody');
+        fetch(`/Policies/Search?searchString=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(data => {
+                tableBody.innerHTML = '';
+                data.forEach(item => {
+                    const row = `<tr>
+                                <td>${item.Type}</td>
+                                <td>${new Date(item.StartDate).toLocaleDateString('ru-RU')}</td>
+                                <td>${new Date(item.EndDate).toLocaleDateString('ru-RU')}</td>
+                                <td>${item.PremiumAmount}</td>
+                                <td>${item.PaymentCoef}</td>
+                                <td>${item.Status}</td>
+                                <td>${item.InsuranceObject.Type}</td>
+                                <td>${item.InsuranceAgent.Email}</td>
+                                <td>${item.Client.Email}</td>
+                                <td>${item.Client.Surname} ${item.Client.Name} ${item.Client.Patronymic}</td>
+                                <td>
+                                    ${item.Status === 'Активен' ? `<form method="post" action='/Policies/MarkAsSuspicious/${item.Id}'><button type="submit" class="btn btn-warning">Mark As Suspicious</button></form>` : ''}
+                                    ${item.Status === 'Подозрительный' ? `<form method="post" action='/Policies/Cancel/${item.Id}'><button type="submit" class="btn btn-danger">Cancel</button></form>` : ''}
+                                </td>
+                                <td>
+                                    <a href="/Policies/Edit/${item.Id}">Edit</a> |
+                                    <a href="/Policies/Details/${item.Id}">Details</a> |
+                                    <a href="/Policies/Delete/${item.Id}">Delete</a>
+                                </td>
+                            </tr>`;
+                    tableBody.insertAdjacentHTML('beforeend', row);
+                });
+            });
+    });
+</script>

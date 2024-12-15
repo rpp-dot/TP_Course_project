@@ -36,7 +36,9 @@
             </div>
             <div class="form-group">
                 <label asp-for="ClaimStatus" class="control-label"></label>
-                <select asp-for="ClaimStatus" class="form-control"></select>
+                <select asp-for="ClaimStatus" class="form-control" asp-items="Html.GetEnumSelectList<ClaimStatus>()">
+                    <option selected="selected" value="">Please select</option>
+                </select>
                 <span asp-validation-for="ClaimStatus" class="text-danger"></span>
             </div>
             <div class="form-group">

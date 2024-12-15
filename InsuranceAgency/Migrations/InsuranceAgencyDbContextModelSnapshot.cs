@@ -286,6 +286,8 @@ namespace InsuranceAgency.Migrations
 
                     b.HasIndex("ClientId");
 
+                    b.HasIndex("PolicyId");
+
                     b.ToTable("PaymentClaims");
                 });
 
@@ -298,7 +300,7 @@ namespace InsuranceAgency.Migrations
                     b.Property<int>("ClientId")
                         .HasColumnType("int");
 
-                    b.Property<DateOnly>("EndDate")
+                    b.Property<DateTime>("EndDate")
                         .HasColumnType("DATE");
 
                     b.Property<int>("InsuranceAgentId")
@@ -313,7 +315,7 @@ namespace InsuranceAgency.Migrations
                     b.Property<decimal>("PremiumAmount")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<DateOnly>("StartDate")
+                    b.Property<DateTime>("StartDate")
                         .HasColumnType("DATE");
 
                     b.Property<int>("Status")
@@ -327,6 +329,10 @@ namespace InsuranceAgency.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ClientId");
+
+                    b.HasIndex("InsuranceAgentId");
+
+                    b.HasIndex("InsuranceObjectId");
 
                     b.ToTable("Policies");
                 });
@@ -361,6 +367,10 @@ namespace InsuranceAgency.Migrations
 
                     b.HasIndex("ClientId");
 
+                    b.HasIndex("InsuranceObjectId");
+
+                    b.HasIndex("ServiceId");
+
                     b.ToTable("PolicyClaims");
                 });
 
@@ -388,29 +398,75 @@ namespace InsuranceAgency.Migrations
 
             modelBuilder.Entity("InsuranceAgency.Models.PaymentClaim", b =>
                 {
-                    b.HasOne("InsuranceAgency.Models.Client", null)
+                    b.HasOne("InsuranceAgency.Models.Client", "Client")
                         .WithMany("PaymentClaims")
                         .HasForeignKey("ClientId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("InsuranceAgency.Models.Policy", "Policy")
+                        .WithMany()
+                        .HasForeignKey("PolicyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Client");
+
+                    b.Navigation("Policy");
                 });
 
             modelBuilder.Entity("InsuranceAgency.Models.Policy", b =>
                 {
-                    b.HasOne("InsuranceAgency.Models.Client", null)
+                    b.HasOne("InsuranceAgency.Models.Client", "Client")
                         .WithMany("Policies")
                         .HasForeignKey("ClientId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("InsuranceAgency.Models.InsuranceAgent", "InsuranceAgent")
+                        .WithMany()
+                        .HasForeignKey("InsuranceAgentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("InsuranceAgency.Models.InsuranceObject", "InsuranceObject")
+                        .WithMany()
+                        .HasForeignKey("InsuranceObjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Client");
+
+                    b.Navigation("InsuranceAgent");
+
+                    b.Navigation("InsuranceObject");
                 });
 
             modelBuilder.Entity("InsuranceAgency.Models.PolicyClaim", b =>
                 {
-                    b.HasOne("InsuranceAgency.Models.Client", null)
+                    b.HasOne("InsuranceAgency.Models.Client", "Client")
                         .WithMany("PolicyClaims")
                         .HasForeignKey("ClientId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("InsuranceAgency.Models.InsuranceObject", "InsuranceObject")
+                        .WithMany()
+                        .HasForeignKey("InsuranceObjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("InsuranceAgency.Models.Service", "Service")
+                        .WithMany()
+                        .HasForeignKey("ServiceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Client");
+
+                    b.Navigation("InsuranceObject");
+
+                    b.Navigation("Service");
                 });
 
             modelBuilder.Entity("InsuranceAgency.Models.Client", b =>
