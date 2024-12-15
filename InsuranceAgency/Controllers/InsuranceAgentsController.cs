@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace InsuranceAgency.Controllers
 {
-    [Authorize(Roles = "admin")]
+    [Authorize(Roles = "Administrator")]
     public class InsuranceAgentsController : Controller
     {
         private readonly InsuranceAgencyDbContext _context;
@@ -62,6 +62,7 @@ namespace InsuranceAgency.Controllers
         {
             if (ModelState.IsValid)
             {
+                insuranceAgent.Password = BCrypt.Net.BCrypt.HashPassword(insuranceAgent.Password);
                 _context.Add(insuranceAgent);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -101,6 +102,7 @@ namespace InsuranceAgency.Controllers
             {
                 try
                 {
+                    insuranceAgent.Password = BCrypt.Net.BCrypt.HashPassword(insuranceAgent.Password);
                     _context.Update(insuranceAgent);
                     await _context.SaveChangesAsync();
                 }

@@ -7,9 +7,11 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using InsuranceAgency.Data;
 using InsuranceAgency.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace InsuranceAgency.Controllers
 {
+    [Authorize(Roles = "Administrator")]
     public class ClientsController : Controller
     {
         private readonly InsuranceAgencyDbContext _context;
@@ -60,6 +62,7 @@ namespace InsuranceAgency.Controllers
         {
             if (ModelState.IsValid)
             {
+                client.Password = BCrypt.Net.BCrypt.HashPassword(client.Password);
                 _context.Add(client);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -99,6 +102,7 @@ namespace InsuranceAgency.Controllers
             {
                 try
                 {
+                    client.Password = BCrypt.Net.BCrypt.HashPassword(client.Password);
                     _context.Update(client);
                     await _context.SaveChangesAsync();
                 }

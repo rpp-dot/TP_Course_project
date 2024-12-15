@@ -1,13 +1,15 @@
-﻿namespace InsuranceAgency.Controllers
-{
-    using InsuranceAgency.Data;
-    using InsuranceAgency.Models;
-    using Microsoft.AspNetCore.Authentication;
-    using Microsoft.AspNetCore.Authentication.Cookies;
-    using Microsoft.AspNetCore.Mvc;
-    using System;
-    using System.Security.Claims;
+﻿using InsuranceAgency.Data;
+using InsuranceAgency.Models;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Security.Claims;
 
+namespace InsuranceAgency.Controllers
+{
+    
     public class AccountController : Controller
     {
         private readonly Services.AuthenticationService _authService;
@@ -83,7 +85,7 @@
             if (ModelState.IsValid)
             {
                 // Хэшируем пароль перед сохранением (например, с использованием BCrypt)
-                //client.Password = BCrypt.Net.BCrypt.HashPassword(client.Password);
+                client.Password = BCrypt.Net.BCrypt.HashPassword(client.Password);
 
                 // Устанавливаем роль "Client"
                 client.Role = "Client";

@@ -45,7 +45,7 @@ namespace InsuranceAgency.Services
 
         private bool VerifyPassword(string password, string storedHash)
         {
-            return password==storedHash;
+            return BCrypt.Net.BCrypt.Verify(password, storedHash);
         }
     }
 
