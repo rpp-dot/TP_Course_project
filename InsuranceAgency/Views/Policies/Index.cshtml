@@ -1,188 +1,67 @@
 ﻿@model IEnumerable<InsuranceAgency.Models.Policy>
-
 @{
     ViewData["Title"] = "Index";
 }
 
 <h1>Index</h1>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-
-<div class="mb-3">
-    <label for="searchInput" class="form-label">Search by Client Email or Name</label>
-    <input type="text" id="searchInput" class="form-control" placeholder="Enter email or name">
-</div>
-
-<div class="mb-3">
-    <button class="btn btn-primary" onclick="filterByStatus('Активен')">Active</button>
-    <button class="btn btn-secondary" onclick="filterByStatus('Истек')">Expired</button>
-    <button class="btn btn-warning" onclick="filterByStatus('Подозрительный')">Suspicious</button>
-    <button class="btn btn-danger" onclick="filterByStatus('Аннулирован')">Cancelled</button>
+<div class="filters">
+    <button class="btn btn-primary" onclick="filterByStatus(1)">Активен</button>
+    <button class="btn btn-warning" onclick="filterByStatus(3)">Подозрительный</button>
+    <button class="btn btn-danger" onclick="filterByStatus(4)">Аннулирован</button>
+    <button class="btn btn-secondary" onclick="filterByStatus(2)">Истек</button>
+    <input type="text" id="searchClient" placeholder="Поиск по Email или ФИО" class="form-control" style="display:inline-block; width:auto; margin-left:15px;">
+    <button class="btn btn-info" onclick="searchByClient()">Найти</button>
+    <p>
+        <button onclick="resetFilters()" class="btn btn-secondary">Сбросить фильтры</button>
+    </p>
 </div>
 
 <table class="table">
     <thead>
         <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Type)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.StartDate)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.EndDate)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.PremiumAmount)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.PaymentCoef)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Status)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.InsuranceObject)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.InsuranceAgent)
-            </th>
-            <th>
-                Client Email
-            </th>
-            <th>
-                Client Full Name
-            </th>
-            <th></th>
+            <th>@Html.DisplayNameFor(model => model.Type)</th>
+            <th>@Html.DisplayNameFor(model => model.StartDate)</th>
+            <th>@Html.DisplayNameFor(model => model.EndDate)</th>
+            <th>@Html.DisplayNameFor(model => model.PremiumAmount)</th>
+            <th>@Html.DisplayNameFor(model => model.PaymentCoef)</th>
+            <th>@Html.DisplayNameFor(model => model.Status)</th>
+            <th>ФИО клиента</th>
+            <th>@Html.DisplayNameFor(model => model.Client.Email)</th>
+            <th>Действия</th>
         </tr>
     </thead>
-    <tbody id="policyTableBody">
-        @foreach (var item in Model)
-        {
-            <tr>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Type)
-                </td>
-                <td>
-                    @item.StartDate.ToString("dd.MM.yyyy")
-                </td>
-                <td>
-                    @item.EndDate.ToString("dd.MM.yyyy")
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.PremiumAmount)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.PaymentCoef)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Status)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.InsuranceObject.Type)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.InsuranceAgent.Email)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Client.Email)
-                </td>
-                <td>
-                    @item.Client.Surname @item.Client.Name @item.Client.Patronymic
-                </td>
-                <td>
-                    @if (item.Status == InsuranceAgency.Models.PolicyStatus.Активен)
-                    {
-                        <form method="post" action="@Url.Action("MarkAsSuspicious", "Policies", new { id = item.Id })">
-                            <button type="submit" class="btn btn-warning">Mark As Suspicious</button>
-                        </form>
-                    }
-                    else if (item.Status == InsuranceAgency.Models.PolicyStatus.Подозрительный)
-                    {
-                        <form method="post" action="@Url.Action("Cancel", "Policies", new { id = item.Id })">
-                            <button type="submit" class="btn btn-danger">Cancel</button>
-                        </form>
-                    }
-                </td>
-                <td>
-                    <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                    <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                    <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-                </td>
-            </tr>
-        }
+    <tbody id="policiesTableBody">
+        @await Html.PartialAsync("_PolicyRows", Model)
     </tbody>
 </table>
 
 <script>
-    // Filter by Status
     function filterByStatus(status) {
-        const tableBody = document.getElementById('policyTableBody');
-        fetch(`/Policies/FilterByStatus?status=${encodeURIComponent(status)}`)
-            .then(response => response.json())
-            .then(data => {
-                tableBody.innerHTML = '';
-                data.forEach(item => {
-                    const row = `<tr>
-                                <td>${item.Type}</td>
-                                <td>${new Date(item.StartDate).toLocaleDateString('ru-RU')}</td>
-                                <td>${new Date(item.EndDate).toLocaleDateString('ru-RU')}</td>
-                                <td>${item.PremiumAmount}</td>
-                                <td>${item.PaymentCoef}</td>
-                                <td>${item.Status}</td>
-                                <td>${item.InsuranceObject.Type}</td>
-                                <td>${item.InsuranceAgent.Email}</td>
-                                <td>${item.Client.Email}</td>
-                                <td>${item.Client.Surname} ${item.Client.Name} ${item.Client.Patronymic}</td>
-                                <td>
-                                    ${item.Status === 'Активен' ? `<form method="post" action='/Policies/MarkAsSuspicious/${item.Id}'><button type="submit" class="btn btn-warning">Mark As Suspicious</button></form>` : ''}
-                                    ${item.Status === 'Подозрительный' ? `<form method="post" action='/Policies/Cancel/${item.Id}'><button type="submit" class="btn btn-danger">Cancel</button></form>` : ''}
-                                </td>
-                                <td>
-                                    <a href="/Policies/Edit/${item.Id}">Edit</a> |
-                                    <a href="/Policies/Details/${item.Id}">Details</a> |
-                                    <a href="/Policies/Delete/${item.Id}">Delete</a>
-                                </td>
-                            </tr>`;
-                    tableBody.insertAdjacentHTML('beforeend', row);
-                });
-            });
+        $.get('/Policies/FilterByStatus', { status: status }, function (data) {
+            $('#policiesTableBody').html(data);
+        });
     }
 
-    // Search functionality
-    document.getElementById('searchInput').addEventListener('input', function () {
-        const query = this.value;
-        const tableBody = document.getElementById('policyTableBody');
-        fetch(`/Policies/Search?searchString=${encodeURIComponent(query)}`)
-            .then(response => response.json())
-            .then(data => {
-                tableBody.innerHTML = '';
-                data.forEach(item => {
-                    const row = `<tr>
-                                <td>${item.Type}</td>
-                                <td>${new Date(item.StartDate).toLocaleDateString('ru-RU')}</td>
-                                <td>${new Date(item.EndDate).toLocaleDateString('ru-RU')}</td>
-                                <td>${item.PremiumAmount}</td>
-                                <td>${item.PaymentCoef}</td>
-                                <td>${item.Status}</td>
-                                <td>${item.InsuranceObject.Type}</td>
-                                <td>${item.InsuranceAgent.Email}</td>
-                                <td>${item.Client.Email}</td>
-                                <td>${item.Client.Surname} ${item.Client.Name} ${item.Client.Patronymic}</td>
-                                <td>
-                                    ${item.Status === 'Активен' ? `<form method="post" action='/Policies/MarkAsSuspicious/${item.Id}'><button type="submit" class="btn btn-warning">Mark As Suspicious</button></form>` : ''}
-                                    ${item.Status === 'Подозрительный' ? `<form method="post" action='/Policies/Cancel/${item.Id}'><button type="submit" class="btn btn-danger">Cancel</button></form>` : ''}
-                                </td>
-                                <td>
-                                    <a href="/Policies/Edit/${item.Id}">Edit</a> |
-                                    <a href="/Policies/Details/${item.Id}">Details</a> |
-                                    <a href="/Policies/Delete/${item.Id}">Delete</a>
-                                </td>
-                            </tr>`;
-                    tableBody.insertAdjacentHTML('beforeend', row);
-                });
-            });
-    });
+    function searchByClient() {
+        var query = $('#searchClient').val();
+        $.get('/Policies/SearchByClient', { query: query }, function (data) {
+            $('#policiesTableBody').html(data);
+        });
+    }
+
+    function changeStatus(policyId, newStatus) {
+        $.post('/Policies/ChangeStatus', { id: policyId, status: newStatus }, function () {
+            location.reload();
+        });
+    }
+
+    // Функция для сброса фильтров и поиска
+    function resetFilters() {
+        $.get('/Policies/Index', function (data) {
+            // Парсим HTML страницы, чтобы извлечь обновленное тело таблицы
+            const newTableBody = $(data).find('#policiesTableBody').html();
+            $('#policiesTableBody').html(newTableBody);
+        });
+    }
 </script>

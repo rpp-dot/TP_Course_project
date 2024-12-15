@@ -39,7 +39,9 @@
             </div>
             <div class="form-group">
                 <label asp-for="Status" class="control-label"></label>
-                <select asp-for="Status" class="form-control" asp-items="ViewBag.Status"></select>
+                <select asp-for="Status" class="form-control" asp-items="Html.GetEnumSelectList<PolicyStatus>()">
+                    <option selected="selected" value="">Please select</option>
+                </select>
                 <span asp-validation-for="Status" class="text-danger"></span>
             </div>
             <div class="form-group">
@@ -67,19 +69,4 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-    <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/localization/messages_ru.js"></script>
-    <script>
-        $(document).ready(function () {
-            $.validator.methods.range = function (value, element, param) {
-                var globalizedValue = value.replace(",", "."); // Заменяем запятую на точку
-                return this.optional(element) || (globalizedValue >= param[0] && globalizedValue <= param[1]);
-            };
-
-            $.validator.methods.number = function (value, element) {
-                return this.optional(element) || /^-?\d+(\.\d+)?$/.test(value.replace(",", "."));
-            };
-        });
-
-    </script>
 }

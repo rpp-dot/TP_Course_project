@@ -1,0 +1,40 @@
+﻿@model IEnumerable<InsuranceAgency.Models.Policy>
+
+@foreach (var item in Model)
+{
+    <tr>
+        <td>@item.Type</td>
+        <td>@item.StartDate.ToString("dd.MM.yyyy")</td>
+        <td>@item.EndDate.ToString("dd.MM.yyyy")</td>
+        <td>@item.PremiumAmount</td>
+        <td>@item.PaymentCoef</td>
+        <td>@item.Status</td>
+        <td>@($"{item.Client.Surname} {item.Client.Name} {item.Client.Patronymic}")</td>
+        <td>@item.Client.Email</td>
+        @if (User.IsInRole("InsuranceAgent"))
+        {
+             <td>
+            @if (item.Status == InsuranceAgency.Models.PolicyStatus.Активен)
+            {
+                <a href="#" onclick="changeStatus(@item.Id, 3)">Пометить как подозрительный</a>
+            }
+            else if (item.Status == InsuranceAgency.Models.PolicyStatus.Подозрительный)
+            {
+                <a href="#" onclick="changeStatus(@item.Id, 4)">Аннулировать</a> 
+                <span>|</span>
+                <a href="#" onclick="changeStatus(@item.Id, 1)">Восстановить</a>
+            }
+            </td>
+        }
+       
+        @if (User.IsInRole("Administrator"))
+        {
+             <td> 
+            <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> | 
+            <a asp-action="Details" asp-route-id="@item.Id">Details</a> | 
+            <a asp-action="Delete" asp-route-id="@item.Id">Delete</a> 
+            </td>
+        }
+       
+    </tr>
+}

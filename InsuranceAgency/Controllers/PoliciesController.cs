@@ -7,11 +7,9 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using InsuranceAgency.Data;
 using InsuranceAgency.Models;
-using Microsoft.AspNetCore.Authorization;
 
 namespace InsuranceAgency.Controllers
 {
-    [Authorize(Roles = "Administrator")]
     public class PoliciesController : Controller
     {
         private readonly InsuranceAgencyDbContext _context;
@@ -52,7 +50,6 @@ namespace InsuranceAgency.Controllers
         // GET: Policies/Create
         public IActionResult Create()
         {
-            ViewBag.Status = new SelectList(Enum.GetValues(typeof(PolicyStatus)));
             ViewData["ClientId"] = new SelectList(_context.Clients, "Id", "Email");
             ViewData["InsuranceAgentId"] = new SelectList(_context.InsuranceAgents, "Id", "Email");
             ViewData["InsuranceObjectId"] = new SelectList(_context.InsuranceObjects, "Id", "Type");
@@ -72,7 +69,6 @@ namespace InsuranceAgency.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewBag.Status = new SelectList(Enum.GetValues(typeof(PolicyStatus)));
             ViewData["ClientId"] = new SelectList(_context.Clients, "Id", "Email", policy.ClientId);
             ViewData["InsuranceAgentId"] = new SelectList(_context.InsuranceAgents, "Id", "Email", policy.InsuranceAgentId);
             ViewData["InsuranceObjectId"] = new SelectList(_context.InsuranceObjects, "Id", "Type", policy.InsuranceObjectId);
@@ -92,15 +88,6 @@ namespace InsuranceAgency.Controllers
             {
                 return NotFound();
             }
-            ViewBag.Status = new SelectList(
-        Enum.GetValues(typeof(PolicyStatus))
-            .Cast<PolicyStatus>()
-            .Select(status => new SelectListItem
-            {
-                Value = ((int)status).ToString(),  // Store the enum value as a string
-                Text = status.ToString()  // Display the enum's name as text (e.g., "Активен")
-            }),
-        "Value", "Text", policy.Status);
             ViewData["ClientId"] = new SelectList(_context.Clients, "Id", "Email", policy.ClientId);
             ViewData["InsuranceAgentId"] = new SelectList(_context.InsuranceAgents, "Id", "Email", policy.InsuranceAgentId);
             ViewData["InsuranceObjectId"] = new SelectList(_context.InsuranceObjects, "Id", "Type", policy.InsuranceObjectId);
@@ -139,15 +126,6 @@ namespace InsuranceAgency.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewBag.Status = new SelectList(
-        Enum.GetValues(typeof(PolicyStatus))
-            .Cast<PolicyStatus>()
-            .Select(status => new SelectListItem
-            {
-                Value = ((int)status).ToString(),  // Store the enum value as a string
-                Text = status.ToString()  // Display the enum's name as text (e.g., "Активен")
-            }),
-        "Value", "Text", policy.Status);
             ViewData["ClientId"] = new SelectList(_context.Clients, "Id", "Email", policy.ClientId);
             ViewData["InsuranceAgentId"] = new SelectList(_context.InsuranceAgents, "Id", "Email", policy.InsuranceAgentId);
             ViewData["InsuranceObjectId"] = new SelectList(_context.InsuranceObjects, "Id", "Type", policy.InsuranceObjectId);
@@ -199,10 +177,32 @@ namespace InsuranceAgency.Controllers
           return (_context.Policies?.Any(e => e.Id == id)).GetValueOrDefault();
         }
 
-        // POST: Policies/MarkAsSuspicious/5
-        [HttpPost, ActionName("MarkAsSuspicious")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> MarkAsSuspicious(int id)
+        // AJAX: Фильтрация по статусу
+        public async Task<IActionResult> FilterByStatus(int status)
+        {
+            var policies = await _context.Policies
+                .Include(p => p.Client)
+                .Where(p => (int)p.Status == status)
+                .ToListAsync();
+
+            return PartialView("_PolicyRows", policies);
+        }
+
+        // AJAX: Поиск по Email и ФИО клиента
+        public async Task<IActionResult> SearchByClient(string query)
+        {
+            var policies = await _context.Policies
+                .Include(p => p.Client)
+                .Where(p => p.Client.Email.Contains(query) ||
+                            (p.Client.Name + " " + p.Client.Surname + " " + p.Client.Patronymic).Contains(query))
+                .ToListAsync();
+
+            return PartialView("_PolicyRows", policies);
+        }
+
+        // AJAX: Изменение статуса полиса
+        [HttpPost]
+        public async Task<IActionResult> ChangeStatus(int id, PolicyStatus status)
         {
             var policy = await _context.Policies.FindAsync(id);
             if (policy == null)
@@ -210,59 +210,11 @@ namespace InsuranceAgency.Controllers
                 return NotFound();
             }
 
-            policy.Status = PolicyStatus.Подозрительный;
+            policy.Status = status;
             _context.Update(policy);
             await _context.SaveChangesAsync();
 
-            return RedirectToAction(nameof(Index));
-        }
-
-        // POST: Policies/Cancel/5
-        [HttpPost, ActionName("Cancel")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Cancel(int id)
-        {
-            var policy = await _context.Policies.FindAsync(id);
-            if (policy == null)
-            {
-                return NotFound();
-            }
-
-            policy.Status = PolicyStatus.Аннулирован;
-            _context.Update(policy);
-            await _context.SaveChangesAsync();
-
-            return RedirectToAction(nameof(Index));
-        }
-
-        // GET: Policies/Search
-        public async Task<IActionResult> Search(string searchString)
-        {
-            var policies = from p in _context.Policies
-                           join c in _context.Clients on p.ClientId equals c.Id
-                           where c.Email.Contains(searchString) ||
-                                 c.Surname.Contains(searchString) ||
-                                 c.Name.Contains(searchString) ||
-                                 c.Patronymic.Contains(searchString)
-                           select p;
-
-            var result = await policies.Include(p => p.Client)
-                                       .Include(p => p.InsuranceAgent)
-                                       .Include(p => p.InsuranceObject)
-                                       .ToListAsync();
-            return Json(result);
-        }
-
-        // GET: Policies/FilterByStatus
-        public async Task<IActionResult> FilterByStatus(PolicyStatus status)
-        {
-            var policies = _context.Policies.Where(p => p.Status == status);
-
-            var result = await policies.Include(p => p.Client)
-                                                      .Include(p => p.InsuranceAgent)
-                                                      .Include(p => p.InsuranceObject)
-                                                      .ToListAsync();
-            return Json(result);
+            return Ok();
         }
 
     }
