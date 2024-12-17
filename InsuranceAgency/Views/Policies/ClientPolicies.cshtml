@@ -1,0 +1,33 @@
+﻿<table class="table">
+    <thead>
+        <tr>
+            <th>Тип</th>
+            <th>Дата начала</th>
+            <th>Дата окончания</th>
+            <th>Премия</th>
+            <th>Коэффициент платежа</th>
+            <th>Статус</th>
+            <th>Объект страхования</th>
+            <th>Агент</th>
+            <th>Действия</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var policy in Model)
+        {
+            <tr>
+                <td>@policy.Type</td>
+                <td>@policy.StartDate.ToString("dd.MM.yyyy")</td>
+                <td>@policy.EndDate.ToString("dd.MM.yyyy")</td>
+                <td>@policy.PremiumAmount</td>
+                <td>@policy.PaymentCoef</td>
+                <td>@policy.Status</td>
+                <td>@policy.InsuranceObject.Type</td>
+                <td>@policy.InsuranceAgent.Email</td>
+                <td>
+                    <a asp-action="ClientDetails" asp-route-id="@policy.Id" class="btn btn-info">Details</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

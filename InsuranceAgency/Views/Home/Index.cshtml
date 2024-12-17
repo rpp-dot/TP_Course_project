@@ -47,6 +47,7 @@
         }
         @if (User.IsInRole("Client"))
         {
+            <a href="policies/clientpolicies" class="d-block">Список полисов</a>
             <a href="" class="d-block">Список агентов</a>
             <a href="" class="d-block">Список администраторов</a>
             <a href="" class="d-block">Список бухгалтеров</a>
@@ -54,7 +55,6 @@
             <a href="" class="d-block">Список клиентов</a>
             <a href="" class="d-block">Список заявок на получение выплаты</a>
             <a href="" class="d-block">Список заявок на получение полиса</a>
-            <a href="" class="d-block">Список полисов</a>
             <a href="" class="d-block">Список объектов страхования</a>
         }
         @if (User.IsInRole("InsuranceAgent"))

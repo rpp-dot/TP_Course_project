@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Security.Claims;
 
@@ -46,12 +47,21 @@ namespace InsuranceAgency.Controllers
                 ModelState.AddModelError(string.Empty, "Неверный логин или пароль.");
                 return View();
             }
-
+            // Получаем пользователя по роли
+            int userId = role switch
+            {
+                "Admin" => (await _context.Administrators.FirstOrDefaultAsync(a => a.Login == login))?.Id ?? 0,
+                "Accountant" => (await _context.Accountants.FirstOrDefaultAsync(a => a.Login == login))?.Id ?? 0,
+                "InsuranceAgent" => (await _context.InsuranceAgents.FirstOrDefaultAsync(a => a.Login == login))?.Id ?? 0,
+                "Client" => (await _context.Clients.FirstOrDefaultAsync(c => c.Login == login))?.Id ?? 0,
+                _ => 0
+            };
             // Создаем куки
             var claims = new List<System.Security.Claims.Claim>
             {
                 new System.Security.Claims.Claim(ClaimTypes.Name, login),
-                new System.Security.Claims.Claim(ClaimTypes.Role, role)
+                new System.Security.Claims.Claim(ClaimTypes.Role, role),
+                new System.Security.Claims.Claim(ClaimTypes.NameIdentifier, userId.ToString()) // Добавляем идентификатор
             };
 
             var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);

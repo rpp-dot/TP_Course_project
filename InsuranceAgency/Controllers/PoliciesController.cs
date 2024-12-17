@@ -7,9 +7,12 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using InsuranceAgency.Data;
 using InsuranceAgency.Models;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace InsuranceAgency.Controllers
 {
+    [Authorize]
     public class PoliciesController : Controller
     {
         private readonly InsuranceAgencyDbContext _context;
@@ -19,6 +22,7 @@ namespace InsuranceAgency.Controllers
             _context = context;
         }
 
+        [Authorize(Roles = "Administrator, InsuranceAgent")]
         // GET: Policies
         public async Task<IActionResult> Index()
         {
@@ -47,6 +51,7 @@ namespace InsuranceAgency.Controllers
             return View(policy);
         }
 
+        [Authorize(Roles = "Administrator")]
         // GET: Policies/Create
         public IActionResult Create()
         {
@@ -56,6 +61,7 @@ namespace InsuranceAgency.Controllers
             return View();
         }
 
+        [Authorize(Roles = "Administrator")]
         // POST: Policies/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
@@ -75,6 +81,7 @@ namespace InsuranceAgency.Controllers
             return View(policy);
         }
 
+        [Authorize(Roles = "Administrator")]
         // GET: Policies/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
@@ -94,6 +101,7 @@ namespace InsuranceAgency.Controllers
             return View(policy);
         }
 
+        [Authorize(Roles = "Administrator")]
         // POST: Policies/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
@@ -132,6 +140,7 @@ namespace InsuranceAgency.Controllers
             return View(policy);
         }
 
+        [Authorize(Roles = "Administrator")]
         // GET: Policies/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
@@ -153,6 +162,7 @@ namespace InsuranceAgency.Controllers
             return View(policy);
         }
 
+        [Authorize(Roles = "Administrator")]
         // POST: Policies/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
@@ -172,6 +182,7 @@ namespace InsuranceAgency.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        [Authorize(Roles = "Administrator, InsuranceAgent")]
         private bool PolicyExists(int id)
         {
           return (_context.Policies?.Any(e => e.Id == id)).GetValueOrDefault();
@@ -188,6 +199,7 @@ namespace InsuranceAgency.Controllers
             return PartialView("_PolicyRows", policies);
         }
 
+        [Authorize(Roles = "Administrator, InsuranceAgent")]
         // AJAX: Поиск по Email и ФИО клиента
         public async Task<IActionResult> SearchByClient(string query)
         {
@@ -200,6 +212,7 @@ namespace InsuranceAgency.Controllers
             return PartialView("_PolicyRows", policies);
         }
 
+        [Authorize(Roles = "Administrator, InsuranceAgent")]
         // AJAX: Изменение статуса полиса
         [HttpPost]
         public async Task<IActionResult> ChangeStatus(int id, PolicyStatus status)
@@ -217,5 +230,57 @@ namespace InsuranceAgency.Controllers
             return Ok();
         }
 
+        [Authorize(Roles = "Client")]
+        public async Task<IActionResult> ClientPolicies()
+        {
+            // Получаем ID текущего пользователя (предполагается, что он соответствует ClientId)
+            var clientId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(clientId) || !int.TryParse(clientId, out int parsedClientId))
+            {
+                return Unauthorized(); // Если ID клиента не найден, запрещаем доступ
+            }
+
+            // Фильтруем полисы по текущему клиенту
+            var clientPolicies = await _context.Policies
+                .Include(p => p.Client)
+                .Include(p => p.InsuranceAgent)
+                .Include(p => p.InsuranceObject)
+                .Where(p => p.ClientId == parsedClientId)
+                .ToListAsync();
+
+            return View(clientPolicies);
+        }
+
+        [Authorize(Roles = "Client")]
+        public async Task<IActionResult> ClientDetails(int? id)
+        {
+            if (id == null || _context.Policies == null)
+            {
+                return NotFound();
+            }
+
+            // Получаем ID текущего клиента
+            var clientId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(clientId) || !int.TryParse(clientId, out int parsedClientId))
+            {
+                return Unauthorized();
+            }
+
+            // Ищем полис, принадлежащий текущему клиенту
+            var policy = await _context.Policies
+                .Include(p => p.Client)
+                .Include(p => p.InsuranceAgent)
+                .Include(p => p.InsuranceObject)
+                .FirstOrDefaultAsync(m => m.Id == id && m.ClientId == parsedClientId);
+
+            if (policy == null)
+            {
+                return NotFound();
+            }
+
+            return View(policy);
+        }
     }
 }
