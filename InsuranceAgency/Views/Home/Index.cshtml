@@ -59,12 +59,11 @@
         }
         @if (User.IsInRole("InsuranceAgent"))
         {
-            <a href="" class="d-block">Перечень услуг</a>
-            <a href="" class="d-block">Список клиентов</a>
-            <a href="" class="d-block">Список заявок на получение выплаты</a>
-            <a href="" class="d-block">Список заявок на получение полиса</a>
+            <a href="services/index" class="d-block">Перечень услуг</a>
+            <a href="clients/index" class="d-block">Список клиентов</a>
+            <a href="policyclaims/index" class="d-block">Список заявок на получение полиса</a>
             <a href="policies/index" class="d-block">Список полисов</a>
-            <a href="" class="d-block">Список объектов страхования</a>
+            <a href="insuranceobjects" class="d-block">Список объектов страхования</a>
         }
         @if (User.IsInRole("Accountant"))
         {

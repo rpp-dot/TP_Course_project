@@ -1,0 +1,55 @@
+﻿@model IEnumerable<InsuranceAgency.Models.PolicyClaim>
+
+<tbody>
+    @foreach (var claim in Model)
+    {
+        <tr>
+            <td>@($"{claim.Client.Surname} {claim.Client.Name} {claim.Client.Patronymic}")</td>
+            <td>@claim.Client.Email</td>
+            <td>@claim.Description</td>
+            <td>@claim.ClaimDate.ToString("dd.MM.yyyy")</td>
+            <td>@claim.ClaimStatus</td>
+            <td>
+                @if (User.IsInRole("Administrator"))
+                {
+                    <a asp-action="Edit" asp-route-id="@claim.Id">Edit</a>
+                    <a asp-action="Delete" asp-route-id="@claim.Id">Delete</a>
+                }
+                else if (User.IsInRole("InsuranceAgent"))
+                {
+                    switch (claim.ClaimStatus)
+                    {
+                        case ClaimStatus.Создана:
+                            <button class="btn btn-secondary" onclick="updateStatus(@claim.Id, 2)">В обратку</button>
+                            ;
+                            break;
+
+                        case ClaimStatus.Обрабатывается:
+                            <button class="btn btn-success" onclick="updateStatus(@claim.Id, 3)">Одобрить</button>
+                            <button class="btn btn-danger" onclick="updateStatus(@claim.Id, 4)">Отклонить</button>
+                            ;
+                            break;
+
+                        case ClaimStatus.Одобрена:
+                            <span class="badge bg-warning text-dark">Ожидает подписания</span>
+                            ;
+                            break;
+
+                        case ClaimStatus.Подписана:
+                            <span class="badge bg-primary">Ожидает оплаты</span>
+                            ;
+                            break;
+
+                        case ClaimStatus.Оплачена:
+                        case ClaimStatus.Отклонена:
+                            <button class="btn btn-secondary" onclick="updateStatus(@claim.Id, 7)">Завершить</button>
+                            ;
+                            break;
+                    }
+                }
+                <a asp-action="Details" asp-route-id="@claim.Id">Details</a>
+            </td>
+        </tr>
+    }
+</tbody>
+

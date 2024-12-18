@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace InsuranceAgency.Controllers
 {
-    [Authorize(Roles = "Administrator")]
+    [Authorize(Roles = "Administrator, InsuranceAgent")]
     public class InsuranceObjectsController : Controller
     {
         private readonly InsuranceAgencyDbContext _context;
@@ -120,6 +120,7 @@ namespace InsuranceAgency.Controllers
             return View(insuranceObject);
         }
 
+        [Authorize(Roles = "Administrator")]
         // GET: InsuranceObjects/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
@@ -138,6 +139,7 @@ namespace InsuranceAgency.Controllers
             return View(insuranceObject);
         }
 
+        [Authorize(Roles = "Administrator")]
         // POST: InsuranceObjects/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]

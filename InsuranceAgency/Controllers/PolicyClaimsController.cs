@@ -8,10 +8,11 @@ using Microsoft.EntityFrameworkCore;
 using InsuranceAgency.Data;
 using InsuranceAgency.Models;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace InsuranceAgency.Controllers
 {
-    [Authorize(Roles = "Administrator")]
+    [Authorize(Roles = "Administrator, InsuranceAgent")]
     public class PolicyClaimsController : Controller
     {
         private readonly InsuranceAgencyDbContext _context;
@@ -172,6 +173,78 @@ namespace InsuranceAgency.Controllers
             
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
+        }
+
+        // AJAX Filter: Search by ClaimStatus
+        [HttpGet]
+        public async Task<IActionResult> FilterByStatus(ClaimStatus? status, string searchQuery)
+        {
+            var filteredClaims = _context.PolicyClaims
+                .Include(p => p.Client)
+                .Include(p => p.InsuranceObject)
+                .Include(p => p.Service)
+                .AsQueryable();
+
+            if (status.HasValue)
+            {
+                filteredClaims = filteredClaims.Where(c => c.ClaimStatus == status.Value);
+            }
+
+            if (!string.IsNullOrEmpty(searchQuery))
+            {
+                filteredClaims = filteredClaims.Where(c =>
+                    c.Client.Name.Contains(searchQuery) ||
+                    c.Client.Surname.Contains(searchQuery) ||
+                    c.Client.Patronymic.Contains(searchQuery) ||
+                    c.Client.Email.Contains(searchQuery));
+            }
+
+            return PartialView("_PolicyClaimsTable", await filteredClaims.ToListAsync());
+        }
+
+        // POST: PolicyClaims/UpdateStatus
+        [HttpPost]
+        public async Task<IActionResult> UpdateStatus(int id, ClaimStatus newStatus)
+        {
+            var claim = await _context.PolicyClaims.Include(c => c.Service).Include(c => c.InsuranceObject).FirstOrDefaultAsync(c => c.Id == id);
+            if (claim == null) return NotFound();
+
+            // Check and handle status changes
+            switch (newStatus)
+            {
+                case ClaimStatus.Одобрена:
+                    claim.ClaimStatus = newStatus;
+                    break;
+                case ClaimStatus.Отклонена:
+                    claim.ClaimStatus = newStatus;
+                    break;
+                case ClaimStatus.Обрабатывается: 
+                    claim.ClaimStatus = newStatus;
+                    break;
+                case ClaimStatus.Завершена:
+                    if (claim.ClaimStatus == ClaimStatus.Оплачена)
+                    {
+                        // Create Policy
+                        var policy = new Policy
+                        {
+                            Type = claim.Service.InsuranceObjectType,
+                            StartDate = DateTime.Now,
+                            EndDate = DateTime.Now.AddYears(1),
+                            PremiumAmount = claim.InsuranceObject.Price * claim.Service.PremiumCoef,
+                            PaymentCoef = claim.Service.PaymentCoef,
+                            Status = PolicyStatus.Активен,
+                            InsuranceObjectId = claim.InsuranceObjectId,
+                            InsuranceAgentId = int.Parse(User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value),
+                            ClientId = claim.ClientId
+                        };
+                        _context.Policies.Add(policy);
+                    }
+                    claim.ClaimStatus = ClaimStatus.Завершена;
+                    break;
+            }
+
+            await _context.SaveChangesAsync();
+            return Ok();
         }
 
         private bool PolicyClaimExists(int id)
