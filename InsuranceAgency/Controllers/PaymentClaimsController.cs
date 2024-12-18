@@ -8,10 +8,11 @@ using Microsoft.EntityFrameworkCore;
 using InsuranceAgency.Data;
 using InsuranceAgency.Models;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace InsuranceAgency.Controllers
 {
-    [Authorize(Roles = "Administrator")]
+    [Authorize(Roles = "Administrator, InsuranceAgent, Accountant")]
     public class PaymentClaimsController : Controller
     {
         private readonly InsuranceAgencyDbContext _context;
@@ -172,5 +173,62 @@ namespace InsuranceAgency.Controllers
         {
           return (_context.PaymentClaims?.Any(e => e.Id == id)).GetValueOrDefault();
         }
+
+        // Новый метод для AJAX-фильтрации
+        [HttpGet]
+        public async Task<IActionResult> Filter(string status, string search)
+        {
+            var claimsQuery = _context.PaymentClaims
+                .Include(p => p.Client)
+                .Include(p => p.Policy)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(status))
+            {
+                if (Enum.TryParse(status, out ClaimStatus claimStatus))
+                {
+                    claimsQuery = claimsQuery.Where(c => c.ClaimStatus == claimStatus);
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                claimsQuery = claimsQuery.Where(c =>
+                    EF.Functions.Like(c.Client.Email, $"%{search}%") ||
+                    EF.Functions.Like(c.Client.Name + " " + c.Client.Surname + " " + c.Client.Patronymic, $"%{search}%"));
+            }
+
+            var filteredClaims = await claimsQuery.ToListAsync();
+            return PartialView("_ClaimTable", filteredClaims);
+        }
+
+        // POST: PaymentClaims/UpdateStatus
+        [HttpPost]
+        public async Task<IActionResult> UpdateStatus(int id, ClaimStatus newStatus)
+        {
+            var claim = await _context.PaymentClaims.Include(c => c.Policy).Include(c => c.Client).Include(c => c.Policy.InsuranceObject).FirstOrDefaultAsync(c => c.Id == id);
+            if (claim == null) return NotFound();
+
+            // Check and handle status changes
+            switch (newStatus)
+            {
+                case ClaimStatus.Одобрена:
+                    claim.ClaimStatus = newStatus;
+                    break;
+                case ClaimStatus.Отклонена:
+                    claim.ClaimStatus = newStatus;
+                    break;
+                case ClaimStatus.Обрабатывается:
+                    claim.ClaimStatus = newStatus;
+                    break;
+                case ClaimStatus.Завершена:
+                    claim.ClaimStatus = ClaimStatus.Завершена;
+                    break;
+            }
+
+            await _context.SaveChangesAsync();
+            return Ok();
+        }
+
     }
 }

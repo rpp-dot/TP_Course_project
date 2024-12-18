@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace InsuranceAgency.Controllers
 {
-    [Authorize(Roles = "Administrator")]
+    [Authorize(Roles = "Administrator, InsuranceAgent, Accountant")]
     public class ClientsController : Controller
     {
         private readonly InsuranceAgencyDbContext _context;
@@ -69,7 +69,7 @@ namespace InsuranceAgency.Controllers
             }
             return View(client);
         }
-
+        [Authorize(Roles = "Administrator")]
         // GET: Clients/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
@@ -85,7 +85,7 @@ namespace InsuranceAgency.Controllers
             }
             return View(client);
         }
-
+        [Authorize(Roles = "Administrator")]
         // POST: Clients/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
@@ -121,7 +121,7 @@ namespace InsuranceAgency.Controllers
             }
             return View(client);
         }
-
+        [Authorize(Roles = "Administrator")]
         // GET: Clients/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
@@ -139,7 +139,7 @@ namespace InsuranceAgency.Controllers
 
             return View(client);
         }
-
+        [Authorize(Roles = "Administrator")]
         // POST: Clients/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]

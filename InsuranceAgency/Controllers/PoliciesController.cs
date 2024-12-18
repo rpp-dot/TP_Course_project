@@ -22,7 +22,7 @@ namespace InsuranceAgency.Controllers
             _context = context;
         }
 
-        [Authorize(Roles = "Administrator, InsuranceAgent")]
+        [Authorize(Roles = "Administrator, InsuranceAgent, Accountant")]
         // GET: Policies
         public async Task<IActionResult> Index()
         {

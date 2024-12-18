@@ -2,70 +2,70 @@
 
 @{
     ViewData["Title"] = "Index";
+    var statuses = Enum.GetValues(typeof(InsuranceAgency.Models.ClaimStatus))
+        .Cast<InsuranceAgency.Models.ClaimStatus>()
+        .Where(s => s != InsuranceAgency.Models.ClaimStatus.Подписана); // Исключим статус "Подписана", если не нужен
 }
 
-<h1>Index</h1>
+<h1>Payment Claims</h1>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.ClaimAmount)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ClientBankAccount)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Policy)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Client)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Description)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ClaimDate)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ClaimStatus)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.ClaimAmount)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ClientBankAccount)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Policy.Type)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Client.Email)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Description)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ClaimDate)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ClaimStatus)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
+<div>
+    <input type="text" id="searchInput" placeholder="Поиск по Email или ФИО клиента" class="form-control" />
+    @if (User.IsInRole("Accountant"))
+    {
+        <select id="statusFilter" class="form-control">
+            <option value="3">Ожидает оплаты</option>
+        </select>
+    }
+    else
+    {
+        <select id="statusFilter" class="form-control">
+            <option value="">Все</option>
+            @foreach (var status in statuses)
+            {
+                <option value="@status">@status</option>
+            }
+        </select>
+    }
+    
+</div>
+
+@if (User.IsInRole("Administrator"))
+{
+    <p>
+        <a asp-action="Create">Создать новый</a>
+    </p>
 }
-    </tbody>
-</table>
+
+
+<div id="claimsTable">
+    @await Html.PartialAsync("_ClaimTable", Model)
+</div>
+
+@section Scripts {
+    <script src="/lib/jquery/dist/jquery.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            function filterClaims() {
+                var status = $('#statusFilter').val();
+                var search = $('#searchInput').val();
+
+                $.get('@Url.Action("Filter", "PaymentClaims")', { status: status, search: search })
+                    .done(function (data) {
+                        $('#claimsTable').html(data);
+                    });
+            }
+
+            $('#statusFilter').change(filterClaims);
+            $('#searchInput').keyup(filterClaims);
+            filterClaims();
+        });
+    </script>
+    <script>
+        function updateStatus(claimId, newStatus) {
+            $.post('/PaymentClaims/UpdateStatus', { id: claimId, newStatus: newStatus }, function () {
+                location.reload();
+            });
+        }
+    </script>
+}

@@ -1,0 +1,76 @@
+﻿@model IEnumerable<InsuranceAgency.Models.PaymentClaim>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Сумма заявки</th>
+            <th>Банковский счет клиента</th>
+            <th>Полис</th>
+            <th>Клиент</th>
+            <th>Описание</th>
+            <th>Дата заявки</th>
+            <th>Статус</th>
+            <th>Действия</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.ClaimAmount</td>
+                <td>@item.ClientBankAccount</td>
+                <td><a asp-action="Details" asp-controller="Policies" asp-route-id="@item.PolicyId">@item.Policy.Type</a></td>
+                <td>
+                    <a asp-action="Details" asp-controller="Clients" asp-route-id="@item.ClientId">
+                        @item.Client.Name @item.Client.Surname @item.Client.Patronymic
+                        @item.Client.Email
+                    </a>
+                </td>
+                <td>@item.Description</td>
+                <td>@item.ClaimDate.ToString("dd.MM.yyyy")</td>
+                <td>@item.ClaimStatus</td>
+                <td>
+                    @if (User.IsInRole("Administrator"))
+                    {
+                        <a asp-action="Edit" asp-route-id="@item.Id">Изменить</a>
+                        <a asp-action="Delete" asp-route-id="@item.Id">Удалить</a>
+                    }
+                    @if (User.IsInRole("InsuranceAgent"))
+                    {
+                        if (item.ClaimStatus == InsuranceAgency.Models.ClaimStatus.Создана)
+                        {
+                            <button class="btn btn-secondary" onclick="updateStatus(@item.Id, 2)">В обработку</button>
+                        }
+                        else if (item.ClaimStatus == InsuranceAgency.Models.ClaimStatus.Обрабатывается)
+                        {
+                            <button class="btn btn-secondary" onclick="updateStatus(@item.Id, 3)">Одобрить</button>
+
+                            <button class="btn btn-secondary" onclick="updateStatus(@item.Id, 4)">Отклонить</button>
+                        }
+                        else if (item.ClaimStatus == InsuranceAgency.Models.ClaimStatus.Оплачена ||
+                        item.ClaimStatus == InsuranceAgency.Models.ClaimStatus.Отклонена)
+                        {
+                            <button class="btn btn-secondary" onclick="updateStatus(@item.Id, 7)">Завершить</button>
+                        }
+                        else if (item.ClaimStatus == InsuranceAgency.Models.ClaimStatus.Одобрена)
+                        {
+                            <span>Ожидает оплаты</span>
+                        }
+                        else if (item.ClaimStatus == InsuranceAgency.Models.ClaimStatus.Подписана)
+                        {
+                            <span>Ожидает оплаты</span>
+                        }
+                    }
+                    @if (User.IsInRole("Accountant"))
+                    {
+                        if (item.ClaimStatus == InsuranceAgency.Models.ClaimStatus.Одобрена)
+                        {
+                            <button class="btn btn-secondary" onclick="updateStatus(@item.Id, 6)">Оплатить</button>
+                        }
+                    }
+                    <a asp-action="Details" asp-route-id="@item.Id">Детали</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
