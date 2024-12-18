@@ -222,7 +222,10 @@ namespace InsuranceAgency.Controllers
                     claim.ClaimStatus = newStatus;
                     break;
                 case ClaimStatus.Завершена:
-                    claim.ClaimStatus = ClaimStatus.Завершена;
+                    claim.ClaimStatus = newStatus;
+                    break;
+                case ClaimStatus.Оплачена:
+                    claim.ClaimStatus = newStatus;
                     break;
             }
 

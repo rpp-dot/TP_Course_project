@@ -10,6 +10,7 @@
         <td>@item.PaymentCoef</td>
         <td>@item.Status</td>
         <td>@($"{item.Client.Surname} {item.Client.Name} {item.Client.Patronymic}")</td>
+        <td><a asp-action="Details" asp-controller="InsuranceObjects" asp-route-id="@item.InsuranceObjectId">@item.InsuranceObject.Type</a></td>
         <td>@item.Client.Email</td>
         @if (User.IsInRole("InsuranceAgent"))
         {

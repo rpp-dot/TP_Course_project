@@ -5,6 +5,7 @@
     {
         <tr>
             <td>@($"{claim.Client.Surname} {claim.Client.Name} {claim.Client.Patronymic}")</td>
+            <td><a asp-action="Details" asp-controller="InsuranceObjects" asp-route-id="@claim.InsuranceObjectId">@claim.InsuranceObject.Type</a></td>
             <td>@claim.Client.Email</td>
             <td>@claim.Description</td>
             <td>@claim.ClaimDate.ToString("dd.MM.yyyy")</td>
