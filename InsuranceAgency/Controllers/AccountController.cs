@@ -92,14 +92,14 @@ namespace InsuranceAgency.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(Client client)
         {
+            // Хэшируем пароль перед сохранением (например, с использованием BCrypt)
+            client.Password = BCrypt.Net.BCrypt.HashPassword(client.Password);
+
+            // Устанавливаем роль "Client"
+            client.Role = "Client";
             if (ModelState.IsValid)
             {
-                // Хэшируем пароль перед сохранением (например, с использованием BCrypt)
-                client.Password = BCrypt.Net.BCrypt.HashPassword(client.Password);
-
-                // Устанавливаем роль "Client"
-                client.Role = "Client";
-
+               
                 // Сохраняем клиента в базу данных
                 _context.Clients.Add(client);
                 await _context.SaveChangesAsync();

@@ -33,17 +33,18 @@
 <div class="text-center">
     <h1 class="display-4">Добро пожаловать в страховое агентство</h1>
     <div class="display-5">
+        <a href="services/index" class="d-block">Список услуг</a>
         @if (User.IsInRole("Administrator"))
         {
             <a href="insuranceagents/index" class="d-block">Список агентов</a>
             <a href="administrators/index" class="d-block">Список администраторов</a>
             <a href="accountants/index" class="d-block">Список бухгалтеров</a>
-            <a href="services/index" class="d-block">Перечень услуг</a>
             <a href="clients/index" class="d-block">Список клиентов</a>
             <a href="paymentclaims/index" class="d-block">Список заявок на получение выплаты</a>
             <a href="policyclaims/index" class="d-block">Список заявок на получение полиса</a>
             <a href="policies/index" class="d-block">Список полисов</a>
             <a href="insuranceobjects/index" class="d-block">Список объектов страхования</a>
+            <a href="users/aboutme">Обо мне</a>
         }
         @if (User.IsInRole("Client"))
         {
@@ -51,6 +52,7 @@
             <a href="policies/clientpolicies" class="d-block">Мои полисы</a>
             <a href="policyclaims/clientpolicyclaims" class="d-block">Мои заявки на оформление полиса</a>
             <a href="paymentclaims/clientpaymentclaims" class="d-block">Мои заявки на получение выплаты</a>
+            <a href="users/aboutme">Обо мне</a>
         }
         @if (User.IsInRole("InsuranceAgent"))
         {
@@ -59,11 +61,14 @@
             <a href="policyclaims/index" class="d-block">Список заявок на получение полиса</a>
             <a href="paymentclaims/index" class="d-block">Список заявок на получение выплаты</a>
             <a href="policies/index" class="d-block">Список полисов</a>
+            <a href="users/aboutme">Обо мне</a>
         }
         @if (User.IsInRole("Accountant"))
         {
             <a href="paymentclaims/index" class="d-block">Список заявок на получение выплаты</a>
+            <a href="users/aboutme">Обо мне</a>
         }
-        <a href="users/aboutme">Обо мне</a>
+        
+        
     </div>
 </div>

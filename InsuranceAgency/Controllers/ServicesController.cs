@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace InsuranceAgency.Controllers
 {
-    [Authorize(Roles = "Administrator, InsuranceAgent, Client")]
     public class ServicesController : Controller
     {
         private readonly InsuranceAgencyDbContext _context;
@@ -20,7 +19,6 @@ namespace InsuranceAgency.Controllers
         {
             _context = context;
         }
-        [Authorize(Roles = "Administrator, InsuranceAgent, Client")]
         // GET: Services
         public async Task<IActionResult> Index()
         {
@@ -28,7 +26,6 @@ namespace InsuranceAgency.Controllers
                           View(await _context.Services.ToListAsync()) :
                           Problem("Entity set 'InsuranceAgencyDbContext.Services'  is null.");
         }
-        [Authorize(Roles = "Administrator, InsuranceAgent, Client")]
         // GET: Services/Details/5
         public async Task<IActionResult> Details(int? id)
         {
