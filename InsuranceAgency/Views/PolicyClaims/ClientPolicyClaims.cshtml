@@ -28,6 +28,13 @@
                 <td>@claim.InsuranceObject.Price</td>
                 <td>
                     <a asp-action="ClientPolicyClaimDetails" asp-route-id="@claim.Id" class="btn btn-info">Details</a>
+                    @if(claim.ClaimStatus == ClaimStatus.Одобрена){
+                        <a asp-action="Sign" asp-route-id="@claim.Id" class="btn btn-info">Подписать</a>
+                    }
+                    @if (claim.ClaimStatus == ClaimStatus.Подписана)
+                    {
+                        <a asp-action="Pay" asp-route-id="@claim.Id" class="btn btn-info">Оплатить</a>
+                    }
                 </td>
             </tr>
         }

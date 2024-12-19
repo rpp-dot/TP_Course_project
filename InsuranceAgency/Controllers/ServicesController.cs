@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace InsuranceAgency.Controllers
 {
-    [Authorize(Roles = "Administrator, InsuranceAgent")]
+    [Authorize(Roles = "Administrator, InsuranceAgent, Client")]
     public class ServicesController : Controller
     {
         private readonly InsuranceAgencyDbContext _context;
@@ -20,7 +20,7 @@ namespace InsuranceAgency.Controllers
         {
             _context = context;
         }
-
+        [Authorize(Roles = "Administrator, InsuranceAgent, Client")]
         // GET: Services
         public async Task<IActionResult> Index()
         {
@@ -28,7 +28,7 @@ namespace InsuranceAgency.Controllers
                           View(await _context.Services.ToListAsync()) :
                           Problem("Entity set 'InsuranceAgencyDbContext.Services'  is null.");
         }
-
+        [Authorize(Roles = "Administrator, InsuranceAgent, Client")]
         // GET: Services/Details/5
         public async Task<IActionResult> Details(int? id)
         {
@@ -46,13 +46,13 @@ namespace InsuranceAgency.Controllers
 
             return View(service);
         }
-
+        [Authorize(Roles = "Administrator, InsuranceAgent")]
         // GET: Services/Create
         public IActionResult Create()
         {
             return View();
         }
-
+        [Authorize(Roles = "Administrator, InsuranceAgent")]
         // POST: Services/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
@@ -68,7 +68,7 @@ namespace InsuranceAgency.Controllers
             }
             return View(service);
         }
-
+        [Authorize(Roles = "Administrator, InsuranceAgent")]
         // GET: Services/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
@@ -84,7 +84,7 @@ namespace InsuranceAgency.Controllers
             }
             return View(service);
         }
-
+        [Authorize(Roles = "Administrator, InsuranceAgent")]
         // POST: Services/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
@@ -119,7 +119,6 @@ namespace InsuranceAgency.Controllers
             }
             return View(service);
         }
-
         [Authorize(Roles = "Administrator")]
         // GET: Services/Delete/5
         public async Task<IActionResult> Delete(int? id)
@@ -158,7 +157,6 @@ namespace InsuranceAgency.Controllers
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
-
         private bool ServiceExists(int id)
         {
           return (_context.Services?.Any(e => e.Id == id)).GetValueOrDefault();

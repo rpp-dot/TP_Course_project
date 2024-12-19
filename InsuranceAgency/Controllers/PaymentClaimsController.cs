@@ -25,7 +25,7 @@ namespace InsuranceAgency.Controllers
         // GET: PaymentClaims
         public async Task<IActionResult> Index()
         {
-            var insuranceAgencyDbContext = _context.PaymentClaims.Include(p => p.Client).Include(p => p.Policy);
+            var insuranceAgencyDbContext = _context.PaymentClaims.Include(p => p.Client).Include(p => p.Policy).OrderByDescending(p => p.ClaimDate);
             return View(await insuranceAgencyDbContext.ToListAsync());
         }
         [Authorize(Roles = "Administrator, InsuranceAgent, Accountant")]
@@ -249,7 +249,7 @@ namespace InsuranceAgency.Controllers
             var clientPaymentClaims = await _context.PaymentClaims
                 .Include(p => p.Client)
                 .Include(p => p.Policy)
-                .Where(p => p.ClientId == parsedClientId)
+                .Where(p => p.ClientId == parsedClientId).OrderByDescending(p => p.ClaimDate)
                 .ToListAsync();
 
             return View(clientPaymentClaims);

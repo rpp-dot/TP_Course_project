@@ -1,0 +1,33 @@
+﻿@model InsuranceAgency.Models.PolicyClaimWithObjectViewModel
+
+<h2>Создать заявление с объектом</h2>
+
+<form asp-action="CreatePolicyClaimWithObject" method="post">
+    <fieldset>
+        <legend>Данные страхового объекта</legend>
+        <div class="form-group">
+            <label asp-for="InsuranceObject.Price"></label>
+            <input required asp-for="InsuranceObject.Price" class="form-control" />
+            <span asp-validation-for="InsuranceObject.Price" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="InsuranceObject.Type"></label>
+            <input required asp-for="InsuranceObject.Type" class="form-control" />
+            <span asp-validation-for="InsuranceObject.Type" class="text-danger"></span>
+        </div>
+    </fieldset>
+
+    <fieldset>
+        <legend>Данные заявления</legend>
+        <div class="form-group">
+            <label asp-for="PolicyClaim.Description"></label>
+            <input required asp-for="PolicyClaim.Description" class="form-control" />
+            <span asp-validation-for="PolicyClaim.Description" class="text-danger"></span>
+        </div>
+    </fieldset>
+
+    <input type="hidden" asp-for="PolicyClaim.ServiceId" value="@ViewBag.ServiceId" />
+    <input type="hidden" asp-for="PolicyClaim.ClientId" value="@ViewBag.ClientId" />
+
+    <button type="submit" class="btn btn-primary">Подать заявку</button>
+</form>

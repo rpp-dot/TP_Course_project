@@ -246,7 +246,7 @@ namespace InsuranceAgency.Controllers
                 .Include(p => p.Client)
                 .Include(p => p.InsuranceAgent)
                 .Include(p => p.InsuranceObject)
-                .Where(p => p.ClientId == parsedClientId)
+                .Where(p => p.ClientId == parsedClientId).OrderByDescending(p => p.StartDate)
                 .ToListAsync();
 
             return View(clientPolicies);

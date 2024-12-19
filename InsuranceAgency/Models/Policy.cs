@@ -45,6 +45,13 @@ namespace InsuranceAgency.Models
         [ValidateNever]
         public Client Client { get; set; }
 
+        public static string Types(string objectType) => objectType switch
+        {   "Автомобиль" or "Мотоцикл" => "Автострахование",
+            "Квартира" or "Загородный дом" => "Страхование жилья",
+            "Бытовая техника" => "Страховаине имущества",
+            _ => "Универсальный",
+        };
+
     }
     public enum PolicyStatus
     {

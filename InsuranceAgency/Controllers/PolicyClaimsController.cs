@@ -25,7 +25,7 @@ namespace InsuranceAgency.Controllers
         // GET: PolicyClaims
         public async Task<IActionResult> Index()
         {
-            var insuranceAgencyDbContext = _context.PolicyClaims.Include(p => p.Client).Include(p => p.InsuranceObject).Include(p => p.Service);
+            var insuranceAgencyDbContext = _context.PolicyClaims.Include(p => p.Client).Include(p => p.InsuranceObject).Include(p => p.Service).OrderByDescending(p => p.ClaimDate);
             return View(await insuranceAgencyDbContext.ToListAsync());
         }
         [Authorize(Roles = "Administrator, InsuranceAgent")]
@@ -49,7 +49,7 @@ namespace InsuranceAgency.Controllers
 
             return View(policyClaim);
         }
-        [Authorize(Roles = "Administratort")]
+        [Authorize(Roles = "Administrator")]
         // GET: PolicyClaims/Create
         public IActionResult Create()
         {
@@ -227,7 +227,7 @@ namespace InsuranceAgency.Controllers
                         // Create Policy
                         var policy = new Policy
                         {
-                            Type = claim.Service.InsuranceObjectType,
+                            Type = Policy.Types(claim.Service.InsuranceObjectType),
                             StartDate = DateTime.Now,
                             EndDate = DateTime.Now.AddYears(1),
                             PremiumAmount = claim.InsuranceObject.Price * claim.Service.PremiumCoef,
@@ -268,7 +268,7 @@ namespace InsuranceAgency.Controllers
                 .Include(p => p.Client)
                 .Include(p => p.InsuranceObject)
                 .Include(p => p.Service)
-                .Where(p => p.ClientId == parsedClientId)
+                .Where(p => p.ClientId == parsedClientId).OrderByDescending(p => p.ClaimDate)
                 .ToListAsync();
 
             return View(clientPolicyClaims);
@@ -302,6 +302,185 @@ namespace InsuranceAgency.Controllers
                 return NotFound();
             }
 
+            return View(policyClaim);
+        }
+
+        // GET: PolicyClaim/CreateWithObject
+        [Authorize(Roles = ("Client"))]
+        public IActionResult CreatePolicyClaimWithObject(int serviceId, int clientId)
+        {
+            ViewBag.ServiceId = serviceId;
+            ViewBag.ClientId = clientId;
+            var model = new PolicyClaimWithObjectViewModel
+            {
+                PolicyClaim = new PolicyClaim { ServiceId = serviceId, ClientId = clientId },
+                InsuranceObject = new InsuranceObject()
+            };
+
+            return View(model);
+        }
+
+        // POST: PolicyClaim/CreateWithObject
+        [Authorize(Roles = ("Client"))]
+        [HttpPost]
+        public async Task<IActionResult> CreatePolicyClaimWithObject(PolicyClaimWithObjectViewModel model)
+        {
+            var policyClaim = model.PolicyClaim;
+            var insuranceObject = model.InsuranceObject;
+            if (ModelState.IsValid)
+            {
+                // Save InsuranceObject first
+                _context.InsuranceObjects.Add(insuranceObject);
+                await _context.SaveChangesAsync();
+
+                // Link the created InsuranceObject to the PolicyClaim
+                policyClaim.InsuranceObjectId = insuranceObject.Id;
+                policyClaim.ClaimDate = DateOnly.FromDateTime(DateTime.Now);
+                policyClaim.ClaimStatus = ClaimStatus.Создана;
+
+                // Save PolicyClaim
+                _context.PolicyClaims.Add(policyClaim);
+                await _context.SaveChangesAsync();
+
+                return RedirectToAction("ClientPolicyClaims", "PolicyClaims");
+            }
+
+            ViewBag.ServiceId = policyClaim.ServiceId;
+            ViewBag.ClientId = policyClaim.ClientId;
+            return View(model);
+        }
+
+        [Authorize(Roles = "Client")]
+        // GET: PolicyClaims/Pay
+        public async Task<IActionResult> Pay(int? id)
+        {
+            if (id == null || _context.PolicyClaims == null)
+            {
+                return NotFound();
+            }
+
+            var policyClaim = await _context.PolicyClaims.FindAsync(id);
+            if (policyClaim == null)
+            {
+                return NotFound();
+            }
+            ViewData["PaymentInfo"] = "3232 1000 2323 4444";
+            ViewBag.Id = id;
+            return View();
+        }
+
+        [Authorize(Roles = "Client")]
+        // POST: PolicyClaims/Pay
+        // To protect from overposting attacks, enable the specific properties you want to bind to.
+        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Pay(int id)
+        {
+            if (id == null || _context.PolicyClaims == null)
+            {
+                return NotFound();
+            }
+
+            var policyClaim = await _context.PolicyClaims.FindAsync(id);
+            if (policyClaim == null)
+            {
+                return NotFound();
+            }
+
+            if (id != policyClaim.Id)
+            {
+                return NotFound();
+            }
+
+            policyClaim.ClaimStatus = ClaimStatus.Оплачена;
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    _context.Update(policyClaim);
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!PolicyClaimExists(policyClaim.Id))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+                return RedirectToAction("ClientPolicyClaims");
+            }
+            ViewData["PaymentInfo"] = "3232 1000 2323 4444";
+            return View(policyClaim);
+        }
+
+        [Authorize(Roles = "Client")]
+        // GET: PolicyClaims/Sign
+        public async Task<IActionResult> Sign(int? id)
+        {
+            if (id == null || _context.PolicyClaims == null)
+            {
+                return NotFound();
+            }
+
+            var policyClaim = await _context.PolicyClaims.FindAsync(id);
+            if (policyClaim == null)
+            {
+                return NotFound();
+            }
+            ViewBag.Id = id;
+            return View();
+        }
+
+        [Authorize(Roles = "Client")]
+        // POST: PolicyClaims/Sign
+        // To protect from overposting attacks, enable the specific properties you want to bind to.
+        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Sign(int id)
+        {
+            if (id == null || _context.PolicyClaims == null)
+            {
+                return NotFound();
+            }
+
+            var policyClaim = await _context.PolicyClaims.FindAsync(id);
+            if (policyClaim == null)
+            {
+                return NotFound();
+            }
+
+            if (id != policyClaim.Id)
+            {
+                return NotFound();
+            }
+
+            policyClaim.ClaimStatus = ClaimStatus.Подписана;
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    _context.Update(policyClaim);
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!PolicyClaimExists(policyClaim.Id))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+                return RedirectToAction("ClientPolicyClaims");
+            }
             return View(policyClaim);
         }
     }

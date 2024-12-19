@@ -37,11 +37,24 @@
                 @Html.DisplayFor(modelItem => item.PaymentCoef)
             </td>
             <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
                 <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
                 @if(User.IsInRole("Administrator")){
-                    <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                    <a asp-action="Delete" asp-route-id="@item.Id">Delete</a><p>|</p>
+                    
                 }
+                @if (User.IsInRole("InsuranceAgent") || User.IsInRole("Administrator"))
+                {
+                    <a asp-action="Edit" asp-route-id="@item.Id">Edit</a>
+                }
+                    @if (User.IsInRole("Client"))
+                    {
+                        <a asp-action="CreatePolicyClaimWithObject"
+                           asp-controller="PolicyClaims"
+                           asp-route-serviceId="@item.Id"
+                           asp-route-clientId="@User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier).Value">
+                            Подать заявку
+                        </a>
+                    }
             </td>
         </tr>
 }

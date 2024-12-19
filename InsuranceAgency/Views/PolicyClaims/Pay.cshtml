@@ -1,0 +1,28 @@
+﻿@{
+    ViewData["Title"] = "Pay";
+}
+
+<h1>Pay</h1>
+
+<h4>PolicyClaim</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Pay">
+            <label  class="control-label">@ViewBag.PaymentInfo</label>
+            <div class="form-group">
+                <input type="submit" value="Состояние платежа" class="btn btn-primary" asp-item-id="@ViewBag.Id"/>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="ClientPolicyClaims">Back to List</a>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
