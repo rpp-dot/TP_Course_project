@@ -12,7 +12,7 @@ using System.Security.Claims;
 
 namespace InsuranceAgency.Controllers
 {
-    [Authorize(Roles = "Administrator, InsuranceAgent, Accountant")]
+    [Authorize(Roles = "Administrator, InsuranceAgent, Accountant, Client")]
     public class PaymentClaimsController : Controller
     {
         private readonly InsuranceAgencyDbContext _context;
@@ -21,14 +21,14 @@ namespace InsuranceAgency.Controllers
         {
             _context = context;
         }
-
+        [Authorize(Roles = "Administrator, InsuranceAgent, Accountant")]
         // GET: PaymentClaims
         public async Task<IActionResult> Index()
         {
             var insuranceAgencyDbContext = _context.PaymentClaims.Include(p => p.Client).Include(p => p.Policy);
             return View(await insuranceAgencyDbContext.ToListAsync());
         }
-
+        [Authorize(Roles = "Administrator, InsuranceAgent, Accountant")]
         // GET: PaymentClaims/Details/5
         public async Task<IActionResult> Details(int? id)
         {
@@ -48,7 +48,7 @@ namespace InsuranceAgency.Controllers
 
             return View(paymentClaim);
         }
-
+        [Authorize(Roles = "Administrator")]
         // GET: PaymentClaims/Create
         public IActionResult Create()
         {
@@ -56,7 +56,7 @@ namespace InsuranceAgency.Controllers
             ViewData["PolicyId"] = new SelectList(_context.Policies, "Id", "Type");
             return View();
         }
-
+        [Authorize(Roles = "Administrator")]
         // POST: PaymentClaims/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
@@ -74,7 +74,7 @@ namespace InsuranceAgency.Controllers
             ViewData["PolicyId"] = new SelectList(_context.Policies, "Id", "Type", paymentClaim.PolicyId);
             return View(paymentClaim);
         }
-
+        [Authorize(Roles = "Administrator")]
         // GET: PaymentClaims/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
@@ -92,7 +92,7 @@ namespace InsuranceAgency.Controllers
             ViewData["PolicyId"] = new SelectList(_context.Policies, "Id", "Type", paymentClaim.PolicyId);
             return View(paymentClaim);
         }
-
+        [Authorize(Roles = "Administrator")]
         // POST: PaymentClaims/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
@@ -129,7 +129,7 @@ namespace InsuranceAgency.Controllers
             ViewData["PolicyId"] = new SelectList(_context.Policies, "Id", "Type", paymentClaim.PolicyId);
             return View(paymentClaim);
         }
-
+        [Authorize(Roles = "Administrator")]
         // GET: PaymentClaims/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
@@ -149,7 +149,7 @@ namespace InsuranceAgency.Controllers
 
             return View(paymentClaim);
         }
-
+        [Authorize(Roles = "Administrator")]
         // POST: PaymentClaims/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
@@ -168,12 +168,12 @@ namespace InsuranceAgency.Controllers
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
-
+        [Authorize(Roles = "Administrator,  InsuranceAgent, Accountant")]
         private bool PaymentClaimExists(int id)
         {
           return (_context.PaymentClaims?.Any(e => e.Id == id)).GetValueOrDefault();
         }
-
+        [Authorize(Roles = "Administrator,  InsuranceAgent, Accountant")]
         // Новый метод для AJAX-фильтрации
         [HttpGet]
         public async Task<IActionResult> Filter(string status, string search)
@@ -201,7 +201,7 @@ namespace InsuranceAgency.Controllers
             var filteredClaims = await claimsQuery.ToListAsync();
             return PartialView("_ClaimTable", filteredClaims);
         }
-
+        [Authorize(Roles = "Administrator,  InsuranceAgent, Accountant")]
         // POST: PaymentClaims/UpdateStatus
         [HttpPost]
         public async Task<IActionResult> UpdateStatus(int id, ClaimStatus newStatus)
@@ -231,6 +231,59 @@ namespace InsuranceAgency.Controllers
 
             await _context.SaveChangesAsync();
             return Ok();
+        }
+
+        //GET: ClientPaymentClaims
+        [Authorize(Roles = "Client")]
+        public async Task<IActionResult> ClientPaymentClaims()
+        {
+            // Получаем ID текущего пользователя (предполагается, что он соответствует ClientId)
+            var clientId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(clientId) || !int.TryParse(clientId, out int parsedClientId))
+            {
+                return Unauthorized(); // Если ID клиента не найден, запрещаем доступ
+            }
+
+            // Фильтруем платежи по текущему клиенту
+            var clientPaymentClaims = await _context.PaymentClaims
+                .Include(p => p.Client)
+                .Include(p => p.Policy)
+                .Where(p => p.ClientId == parsedClientId)
+                .ToListAsync();
+
+            return View(clientPaymentClaims);
+        }
+
+        //GET: ClientPaymentClaims/Details
+        [Authorize(Roles = "Client")]
+        public async Task<IActionResult> ClientPaymentClaimDetails(int? id)
+        {
+            if (id == null || _context.PaymentClaims == null)
+            {
+                return NotFound();
+            }
+
+            // Получаем ID текущего клиента
+            var clientId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(clientId) || !int.TryParse(clientId, out int parsedClientId))
+            {
+                return Unauthorized();
+            }
+
+            // Ищем платеж, принадлежащий текущему клиенту
+            var paymentClaim = await _context.PaymentClaims
+                .Include(p => p.Client)
+                .Include(p => p.Policy)
+                .FirstOrDefaultAsync(m => m.Id == id && m.ClientId == parsedClientId);
+
+            if (paymentClaim == null)
+            {
+                return NotFound();
+            }
+
+            return View(paymentClaim);
         }
 
     }

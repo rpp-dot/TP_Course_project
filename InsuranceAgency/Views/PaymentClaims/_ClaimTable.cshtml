@@ -65,7 +65,7 @@
                     {
                         if (item.ClaimStatus == InsuranceAgency.Models.ClaimStatus.Одобрена)
                         {
-                            <button class="btn btn-secondary" onclick="updateStatus(@item.Id, 6)">Оплатить</button>
+                            <button class="btn btn-secondary" onclick="updateStatus(@item.Id, 6)">Оплачена</button>
                         }
                     }
                     <a asp-action="Details" asp-route-id="@item.Id">Детали</a>

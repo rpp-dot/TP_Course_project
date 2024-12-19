@@ -1,0 +1,35 @@
+﻿@model IEnumerable<InsuranceAgency.Models.PaymentClaim>
+
+@{
+    ViewData["Title"] = "Payment Claims";
+}
+
+<h1>Payment Claims</h1>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Description</th>
+            <th>Claim Date</th>
+            <th>Status</th>
+            <th>Claim Amount</th>
+            <th>Policy</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var claim in Model)
+        {
+            <tr>
+                <td>@claim.Description</td>
+                <td>@claim.ClaimDate.ToString("dd.MM.yyyy")</td>
+                <td>@claim.ClaimStatus</td>
+                <td>@claim.ClaimAmount</td>
+                <td>@claim.Policy.Type</td>
+                <td>
+                    <a asp-action="ClientPaymentClaimDetails" asp-route-id="@claim.Id" class="btn btn-info">Details</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

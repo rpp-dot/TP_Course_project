@@ -12,7 +12,7 @@ using System.Security.Claims;
 
 namespace InsuranceAgency.Controllers
 {
-    [Authorize(Roles = "Administrator, InsuranceAgent")]
+    [Authorize(Roles = "Administrator, InsuranceAgent, Client")]
     public class PolicyClaimsController : Controller
     {
         private readonly InsuranceAgencyDbContext _context;
@@ -21,14 +21,14 @@ namespace InsuranceAgency.Controllers
         {
             _context = context;
         }
-
+        [Authorize(Roles = "Administrator, InsuranceAgent")]
         // GET: PolicyClaims
         public async Task<IActionResult> Index()
         {
             var insuranceAgencyDbContext = _context.PolicyClaims.Include(p => p.Client).Include(p => p.InsuranceObject).Include(p => p.Service);
             return View(await insuranceAgencyDbContext.ToListAsync());
         }
-
+        [Authorize(Roles = "Administrator, InsuranceAgent")]
         // GET: PolicyClaims/Details/5
         public async Task<IActionResult> Details(int? id)
         {
@@ -49,7 +49,7 @@ namespace InsuranceAgency.Controllers
 
             return View(policyClaim);
         }
-
+        [Authorize(Roles = "Administratort")]
         // GET: PolicyClaims/Create
         public IActionResult Create()
         {
@@ -58,7 +58,7 @@ namespace InsuranceAgency.Controllers
             ViewData["ServiceId"] = new SelectList(_context.Services, "Id", "InsuranceObjectType");
             return View();
         }
-
+        [Authorize(Roles = "Administrator")]
         // POST: PolicyClaims/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
@@ -77,7 +77,7 @@ namespace InsuranceAgency.Controllers
             ViewData["ServiceId"] = new SelectList(_context.Services, "Id", "InsuranceObjectType", policyClaim.ServiceId);
             return View(policyClaim);
         }
-
+        [Authorize(Roles = "Administrator")]
         // GET: PolicyClaims/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
@@ -96,7 +96,7 @@ namespace InsuranceAgency.Controllers
             ViewData["ServiceId"] = new SelectList(_context.Services, "Id", "InsuranceObjectType", policyClaim.ServiceId);
             return View(policyClaim);
         }
-
+        [Authorize(Roles = "Administrator")]
         // POST: PolicyClaims/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
@@ -134,7 +134,7 @@ namespace InsuranceAgency.Controllers
             ViewData["ServiceId"] = new SelectList(_context.Services, "Id", "InsuranceObjectType", policyClaim.ServiceId);
             return View(policyClaim);
         }
-
+        [Authorize(Roles = "Administrator")]
         // GET: PolicyClaims/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
@@ -155,7 +155,7 @@ namespace InsuranceAgency.Controllers
 
             return View(policyClaim);
         }
-
+        [Authorize(Roles = "Administrator")]
         // POST: PolicyClaims/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
@@ -174,7 +174,7 @@ namespace InsuranceAgency.Controllers
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
-
+        [Authorize(Roles = "Administrator, InsuranceAgent")]
         // AJAX Filter: Search by ClaimStatus
         [HttpGet]
         public async Task<IActionResult> FilterByStatus(ClaimStatus? status, string searchQuery)
@@ -201,7 +201,7 @@ namespace InsuranceAgency.Controllers
 
             return PartialView("_PolicyClaimsTable", await filteredClaims.ToListAsync());
         }
-
+        [Authorize(Roles = "Administrator, InsuranceAgent")]
         // POST: PolicyClaims/UpdateStatus
         [HttpPost]
         public async Task<IActionResult> UpdateStatus(int id, ClaimStatus newStatus)
@@ -246,10 +246,63 @@ namespace InsuranceAgency.Controllers
             await _context.SaveChangesAsync();
             return Ok();
         }
-
+        [Authorize(Roles = "Administrator, InsuranceAgent")]
         private bool PolicyClaimExists(int id)
         {
           return (_context.PolicyClaims?.Any(e => e.Id == id)).GetValueOrDefault();
+        }
+        //GET: ClientPolicyClaims
+        [Authorize(Roles = "Client")]
+        public async Task<IActionResult> ClientPolicyClaims()
+        {
+            // Получаем ID текущего пользователя (предполагается, что он соответствует ClientId)
+            var clientId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(clientId) || !int.TryParse(clientId, out int parsedClientId))
+            {
+                return Unauthorized(); // Если ID клиента не найден, запрещаем доступ
+            }
+
+            // Фильтруем претензии по текущему клиенту
+            var clientPolicyClaims = await _context.PolicyClaims
+                .Include(p => p.Client)
+                .Include(p => p.InsuranceObject)
+                .Include(p => p.Service)
+                .Where(p => p.ClientId == parsedClientId)
+                .ToListAsync();
+
+            return View(clientPolicyClaims);
+        }
+        //GET: ClientPolicyClaims/Details
+        [Authorize(Roles = "Client")]
+        public async Task<IActionResult> ClientPolicyClaimDetails(int? id)
+        {
+            if (id == null || _context.PolicyClaims == null)
+            {
+                return NotFound();
+            }
+
+            // Получаем ID текущего клиента
+            var clientId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(clientId) || !int.TryParse(clientId, out int parsedClientId))
+            {
+                return Unauthorized();
+            }
+
+            // Ищем претензию, принадлежащую текущему клиенту
+            var policyClaim = await _context.PolicyClaims
+                .Include(p => p.Client)
+                .Include(p => p.InsuranceObject)
+                .Include(p => p.Service)
+                .FirstOrDefaultAsync(m => m.Id == id && m.ClientId == parsedClientId);
+
+            if (policyClaim == null)
+            {
+                return NotFound();
+            }
+
+            return View(policyClaim);
         }
     }
 }

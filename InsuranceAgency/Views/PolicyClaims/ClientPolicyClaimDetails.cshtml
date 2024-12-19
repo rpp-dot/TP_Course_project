@@ -1,0 +1,29 @@
+﻿@model InsuranceAgency.Models.PolicyClaim
+
+@{
+    ViewData["Title"] = "Policy Claim Details";
+}
+
+<h1>Policy Claim Details</h1>
+
+<div>
+    <h4>Claim</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">Description</dt>
+        <dd class="col-sm-10">@Model.Description</dd>
+
+        <dt class="col-sm-2">Claim Date</dt>
+        <dd class="col-sm-10">@Model.ClaimDate.ToString("dd.MM.yyyy")</dd>
+
+        <dt class="col-sm-2">Status</dt>
+        <dd class="col-sm-10">@Model.ClaimStatus</dd>
+
+        <dt class="col-sm-2">Service</dt>
+        <dd class="col-sm-10">@Model.Service.InsuranceObjectType</dd>
+
+        <dt class="col-sm-2">Insurance Object price</dt>
+        <dd class="col-sm-10">@Model.InsuranceObject.Price</dd>
+    </dl>
+    <a asp-action="ClientPolicyClaims" class="btn btn-secondary">Back</a>
+</div>
