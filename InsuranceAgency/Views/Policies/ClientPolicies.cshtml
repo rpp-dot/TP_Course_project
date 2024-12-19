@@ -26,6 +26,14 @@
                 <td>@policy.InsuranceAgent.Email</td>
                 <td>
                     <a asp-action="ClientDetails" asp-route-id="@policy.Id" class="btn btn-info">Details</a>
+                    @if (policy.Status == PolicyStatus.Активен)
+                    {
+                        <a asp-action="ClientCreate"
+                           asp-controller="PaymentClaims"
+                           asp-route-policyId="@policy.Id">
+                            Заявить о страховом случае
+                        </a>
+                    }
                 </td>
             </tr>
         }

@@ -1,0 +1,44 @@
+﻿@model InsuranceAgency.Models.PaymentClaim
+
+@{
+    ViewData["Title"] = "Create Payment Claim";
+}
+
+<h2>Create Payment Claim</h2>
+
+<form asp-action="ClientCreate" method="post">
+    <input type="hidden" asp-for="PolicyId" />
+
+    <div class="form-group">
+        <label asp-for="Description" class="control-label"></label>
+        <input required asp-for="Description" class="form-control" />
+        <span asp-validation-for="Description" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="ClientBankAccount" class="control-label"></label>
+        <input asp-for="ClientBankAccount" class="form-control" />
+        <span asp-validation-for="ClientBankAccount" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/localization/messages_ru.js"></script>
+    <script>
+        $(document).ready(function () {
+            $.validator.methods.range = function (value, element, param) {
+                var globalizedValue = value.replace(",", "."); // Заменяем запятую на точку
+                return this.optional(element) || (globalizedValue >= param[0] && globalizedValue <= param[1]);
+            };
+
+            $.validator.methods.number = function (value, element) {
+                return this.optional(element) || /^-?\d+(\.\d+)?$/.test(value.replace(",", "."));
+            };
+        });
+
+    </script>
+}

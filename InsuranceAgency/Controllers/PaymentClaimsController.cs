@@ -286,5 +286,53 @@ namespace InsuranceAgency.Controllers
             return View(paymentClaim);
         }
 
+        [Authorize(Roles = "Client")]
+        [HttpGet]
+        public IActionResult ClientCreate(int policyId)
+        {
+            // Ensure the Policy exists
+            var policy = _context.Policies.FirstOrDefault(p => p.Id == policyId);
+            if (policy == null || policy.Status != PolicyStatus.Активен)
+            {
+                return NotFound();
+            }
+
+            // Prepare the model for the view
+            var model = new PaymentClaim
+            {
+                PolicyId = policyId
+            };
+            return View(model);
+        }
+
+        [Authorize(Roles = "Client")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ClientCreate(PaymentClaim model)
+        {
+            // Get the logged-in user's ID
+            var clientId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            if (clientId == null)
+            {
+                return Unauthorized();
+            }
+            var policy = _context.Policies.Include(p => p.InsuranceObject).FirstOrDefault(p => p.Id == model.PolicyId);
+            // Set the default values
+            model.ClientId = int.Parse(clientId);
+            model.ClaimStatus = ClaimStatus.Создана;
+            model.ClaimDate = DateOnly.FromDateTime(DateTime.Now);
+            model.ClaimAmount = Decimal.Round(Decimal.Multiply(policy.PaymentCoef, policy.InsuranceObject.Price), 2);
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            _context.PaymentClaims.Add(model);
+            _context.SaveChanges();
+
+            return RedirectToAction("ClientPaymentClaims", "PaymentClaims"); // Redirect to a relevant page
+        }
+
     }
 }
